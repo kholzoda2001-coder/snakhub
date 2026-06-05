@@ -6,6 +6,8 @@ import ProductList from '../components/ProductList';
 import CategoryCircles from '../components/CategoryCircles';
 import CartPanel from '../components/CartPanel';
 import SideNav from '../components/SideNav';
+import CheckoutModal from '../components/CheckoutModal';
+import SuccessModal from '../components/SuccessModal';
 
 export default function Home() {
   const [productsData, setProductsData] = useState<any[]>([]);
@@ -13,6 +15,8 @@ export default function Home() {
   const [wishlist, setWishlist] = useState<Set<number>>(new Set());
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [isSuccessOpen, setIsSuccessOpen] = useState(false);
   const [isDark, setIsDark] = useState(true);
 
   useEffect(() => {
@@ -39,6 +43,11 @@ export default function Home() {
   const toggleTheme = () => setIsDark(!isDark);
   const toggleCart = () => setIsCartOpen(!isCartOpen);
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+  
+  const openCheckout = () => { setIsCartOpen(false); setIsCheckoutOpen(true); };
+  const closeCheckout = () => setIsCheckoutOpen(false);
+  const handleCheckoutSuccess = () => { setIsCheckoutOpen(false); setCart([]); setIsSuccessOpen(true); };
+  const closeSuccess = () => setIsSuccessOpen(false);
 
   const addToCart = (productId: number) => {
     const p = productsData.find(x => x.id === productId);
@@ -85,6 +94,17 @@ export default function Home() {
         toggleCart={toggleCart} 
         removeFromCart={removeFromCart} 
         updateQty={updateQty} 
+        openCheckout={openCheckout}
+      />
+      <CheckoutModal 
+        isCheckoutOpen={isCheckoutOpen} 
+        closeCheckout={closeCheckout} 
+        cart={cart} 
+        onSuccess={handleCheckoutSuccess} 
+      />
+      <SuccessModal 
+        isSuccessOpen={isSuccessOpen} 
+        closeSuccess={closeSuccess} 
       />
     </>
   );
