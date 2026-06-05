@@ -1,0 +1,56 @@
+'use client';
+import React from 'react';
+
+export default function CartPanel({ cart, isCartOpen, toggleCart, removeFromCart, updateQty }: any) {
+  const subtotal = cart.reduce((acc: number, item: any) => acc + item.price * item.qty, 0);
+
+  return (
+    <>
+      <div className={`overlay ${isCartOpen ? 'active' : ''}`} onClick={toggleCart}></div>
+      <aside className={`cart-panel ${isCartOpen ? 'active' : ''}`} id="cartPanel">
+        <div className="panel-header">
+          <h2 style={{ fontSize: '18px', fontWeight: 800 }}>Your Cart 🛒</h2>
+          <button className="close-x" onClick={toggleCart}>✕</button>
+        </div>
+        <div className="cart-body">
+          {cart.length === 0 ? (
+            <div className="cart-empty-state">
+              <div className="cart-emoji">🛒</div>
+              <h3>Cart is empty</h3>
+              <p>Add your favourite snacks and drinks to get started!</p>
+            </div>
+          ) : (
+            cart.map((item: any) => (
+              <div key={item.id} className="cart-item">
+                <img className="ci-img" src={item.img} alt={item.name} />
+                <div className="ci-info">
+                  <div className="ci-name">{item.name}</div>
+                  <div className="ci-cat">{item.catLabel}</div>
+                  <div className="ci-row">
+                    <div className="ci-price">{item.price * item.qty} AED</div>
+                    <div className="ci-qty">
+                      <button className="qty-btn" onClick={() => updateQty(item.id, -1)}>−</button>
+                      <span className="ci-qty-num">{item.qty}</span>
+                      <button className="qty-btn" onClick={() => updateQty(item.id, 1)}>+</button>
+                    </div>
+                  </div>
+                </div>
+                <button className="ci-remove" onClick={() => removeFromCart(item.id)}>✕</button>
+              </div>
+            ))
+          )}
+        </div>
+        {cart.length > 0 && (
+          <div className="cart-footer visible">
+            <div className="cart-totals">
+              <div className="ct-row"><span>Subtotal</span><span>{subtotal} AED</span></div>
+              <div className="ct-row"><span>Delivery</span><span>Free</span></div>
+              <div className="ct-row total"><span>Total</span><span>{subtotal} AED</span></div>
+            </div>
+            <button className="btn-checkout">Checkout Securely</button>
+          </div>
+        )}
+      </aside>
+    </>
+  );
+}

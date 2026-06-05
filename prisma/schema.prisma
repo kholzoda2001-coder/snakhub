@@ -1,0 +1,33 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Product {
+  id        Int      @id @default(autoincrement())
+  name      String
+  cat       String
+  catLabel  String
+  price     Float
+  oldPrice  Float?
+  tag       String?
+  tagLabel  String?
+  img       String
+  viewers   Int      @default(0)
+  stock     Int      @default(0)
+  desc      String   @db.Text
+  createdAt DateTime @default(now())
+}
+
+model Order {
+  id        Int      @id @default(autoincrement())
+  customer  String
+  address   String
+  total     Float
+  status    String   @default("pending")
+  createdAt DateTime @default(now())
+}
