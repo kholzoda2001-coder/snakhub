@@ -18,10 +18,31 @@ export default function SideNav({ isMenuOpen, toggleMenu }: any) {
           <Link href="/" onClick={toggleMenu}>
             🏠 <span>Home</span>
           </Link>
-          <Link href="/admin" onClick={toggleMenu}>
-            ⚙️ <span>Admin Panel</span>
-            <span className="snl-badge">Admin</span>
+          
+          <div style={{ padding: '12px 18px 4px', fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+            Categories
+          </div>
+          
+          <Link href="/#shop" onClick={toggleMenu}>
+            ⚡ <span>Energy Drinks</span>
           </Link>
+          <Link href="/#shop" onClick={toggleMenu}>
+            🥤 <span>Protein & Fitness</span>
+          </Link>
+          <Link href="/#shop" onClick={toggleMenu}>
+            🍟 <span>Chips & Snacks</span>
+          </Link>
+          <Link href="/#shop" onClick={toggleMenu}>
+            🍬 <span>Candy & Sweets</span>
+          </Link>
+          <Link href="/#shop" onClick={toggleMenu}>
+            🥗 <span>Healthy & Keto</span>
+          </Link>
+
+          <div style={{ padding: '12px 18px 4px', fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '8px' }}>
+            My Account
+          </div>
+
           <a href="#" onClick={toggleMenu}>
             ❤️ <span>My Wishlist</span>
           </a>
