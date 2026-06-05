@@ -23,7 +23,7 @@ export default function ProductList({ productsData, activeCategory, searchQuery,
             {filtered.length === 0 ? (
               <div style={{padding:'20px 0',color:'var(--text-muted)',fontSize:'14px',fontWeight:600}}>No products found 😅</div>
             ) : (
-              filtered.map((p, i) => {
+              filtered.map((p: any, i: number) => {
                 const inWL = wishlist.has(p.id);
                 return (
                   <div key={p.id} className="product-card" style={{ animationDelay: `${i * 0.07}s` }}>
