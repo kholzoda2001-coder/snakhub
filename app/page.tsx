@@ -5,12 +5,14 @@ import Hero from '../components/Hero';
 import ProductList from '../components/ProductList';
 import CategoryCircles from '../components/CategoryCircles';
 import CartPanel from '../components/CartPanel';
+import SideNav from '../components/SideNav';
 
 export default function Home() {
   const [productsData, setProductsData] = useState<any[]>([]);
   const [cart, setCart] = useState<any[]>([]);
   const [wishlist, setWishlist] = useState<Set<number>>(new Set());
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDark, setIsDark] = useState(true);
 
   useEffect(() => {
@@ -36,6 +38,7 @@ export default function Home() {
 
   const toggleTheme = () => setIsDark(!isDark);
   const toggleCart = () => setIsCartOpen(!isCartOpen);
+  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
   const addToCart = (productId: number) => {
     const p = productsData.find(x => x.id === productId);
@@ -64,7 +67,8 @@ export default function Home() {
 
   return (
     <>
-      <Header cartCount={cart.length} toggleTheme={toggleTheme} toggleCart={toggleCart} />
+      <Header cartCount={cart.length} toggleTheme={toggleTheme} toggleCart={toggleCart} toggleMenu={toggleMenu} />
+      <SideNav isMenuOpen={isMenuOpen} toggleMenu={toggleMenu} />
       <Hero />
       <CategoryCircles />
       <ProductList 
