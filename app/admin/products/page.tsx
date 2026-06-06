@@ -1,29 +1,164 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { products as defaultProducts } from '../../../data/products';
 
 export default function AdminProducts() {
-  const [productsData, setProductsData] = useState<any[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isAdding, setIsAdding] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '', cat: '', catLabel: '', price: 0, oldPrice: 0, tag: '', tagLabel: '', img: '', desc: ''
+  });
+  const [editingId, setEditingId] = useState<number | null>(null);
+
+  const fetchProducts = async () => {
+    try {
+      const res = await fetch('/api/products');
+      const data = await res.json();
+      setProducts(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    fetch('/api/products')
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data) && data.length > 0) {
-          setProductsData(data);
-        } else {
-          import('../../../data/products').then(mod => setProductsData(mod.products));
-        }
-      })
-      .catch(() => {
-        import('../../../data/products').then(mod => setProductsData(mod.products));
-      });
+    fetchProducts();
   }, []);
+
+  const loadDefaultProducts = async () => {
+    if (!confirm('Are you sure you want to load default products? This will add 12 products to your database.')) return;
+    setLoading(true);
+    try {
+      for (const p of defaultProducts) {
+        await fetch('/api/products', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: p.name,
+            cat: p.cat,
+            catLabel: p.catLabel,
+            price: p.price,
+            oldPrice: p.oldPrice || null,
+            tag: p.tag || null,
+            tagLabel: p.tagLabel || null,
+            img: p.img,
+            desc: p.desc || ''
+          })
+        });
+      }
+      alert('Default products loaded successfully!');
+      fetchProducts();
+    } catch (err) {
+      alert('Failed to load defaults.');
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!confirm('Are you sure you want to delete this product?')) return;
+    try {
+      await fetch(`/api/products/${id}`, { method: 'DELETE' });
+      fetchProducts();
+    } catch (err) {
+      alert('Failed to delete product');
+    }
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      if (editingId) {
+        await fetch(`/api/products/${editingId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...formData, oldPrice: formData.oldPrice || null, tag: formData.tag || null, tagLabel: formData.tagLabel || null })
+        });
+      } else {
+        await fetch('/api/products', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...formData, oldPrice: formData.oldPrice || null, tag: formData.tag || null, tagLabel: formData.tagLabel || null })
+        });
+      }
+      setIsAdding(false);
+      setEditingId(null);
+      setFormData({ name: '', cat: '', catLabel: '', price: 0, oldPrice: 0, tag: '', tagLabel: '', img: '', desc: '' });
+      fetchProducts();
+    } catch (err) {
+      alert('Failed to save product');
+    }
+  };
+
+  const editProduct = (p: any) => {
+    setFormData({
+      name: p.name, cat: p.cat, catLabel: p.catLabel, price: p.price, oldPrice: p.oldPrice || 0,
+      tag: p.tag || '', tagLabel: p.tagLabel || '', img: p.img, desc: p.desc || ''
+    });
+    setEditingId(p.id);
+    setIsAdding(true);
+  };
+
+  if (loading) return <div style={{ padding: '20px' }}>Loading products...</div>;
+
   return (
     <>
       <div className="page-header">
-        <h1 className="page-title">Products Inventory</h1>
-        <button className="btn-primary">+ Add New Product</button>
+        <h1 className="page-title">Products Management</h1>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button className="btn-secondary" onClick={loadDefaultProducts} style={{ padding: '10px 16px', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', background: 'var(--bg-card)', cursor: 'pointer', fontWeight: 600 }}>Load Defaults</button>
+          <button className="btn-primary" onClick={() => { setIsAdding(true); setEditingId(null); setFormData({ name: '', cat: '', catLabel: '', price: 0, oldPrice: 0, tag: '', tagLabel: '', img: '', desc: '' }); }}>+ Add Product</button>
+        </div>
       </div>
+
+      {isAdding && (
+        <div style={{ background: 'var(--bg-card)', padding: '20px', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', marginBottom: '20px' }}>
+          <h2 style={{ fontSize: '18px', marginBottom: '16px' }}>{editingId ? 'Edit Product' : 'Add New Product'}</h2>
+          <form onSubmit={handleSave} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div>
+              <label>Name</label>
+              <input type="text" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} style={inputStyle} />
+            </div>
+            <div>
+              <label>Image URL</label>
+              <input type="text" required value={formData.img} onChange={e => setFormData({...formData, img: e.target.value})} style={inputStyle} />
+            </div>
+            <div>
+              <label>Category ID (e.g. chips)</label>
+              <input type="text" required value={formData.cat} onChange={e => setFormData({...formData, cat: e.target.value})} style={inputStyle} />
+            </div>
+            <div>
+              <label>Category Label (e.g. CHIPS)</label>
+              <input type="text" required value={formData.catLabel} onChange={e => setFormData({...formData, catLabel: e.target.value})} style={inputStyle} />
+            </div>
+            <div>
+              <label>Price (AED)</label>
+              <input type="number" required step="0.01" value={formData.price} onChange={e => setFormData({...formData, price: parseFloat(e.target.value)})} style={inputStyle} />
+            </div>
+            <div>
+              <label>Old Price (Optional)</label>
+              <input type="number" step="0.01" value={formData.oldPrice} onChange={e => setFormData({...formData, oldPrice: parseFloat(e.target.value)})} style={inputStyle} />
+            </div>
+            <div>
+              <label>Tag Class (e.g. hot, new)</label>
+              <input type="text" value={formData.tag} onChange={e => setFormData({...formData, tag: e.target.value})} style={inputStyle} />
+            </div>
+            <div>
+              <label>Tag Label (e.g. HOT)</label>
+              <input type="text" value={formData.tagLabel} onChange={e => setFormData({...formData, tagLabel: e.target.value})} style={inputStyle} />
+            </div>
+            <div style={{ gridColumn: '1 / -1' }}>
+              <label>Description</label>
+              <textarea value={formData.desc} onChange={e => setFormData({...formData, desc: e.target.value})} style={{ ...inputStyle, height: '80px', resize: 'none' }} />
+            </div>
+            <div style={{ gridColumn: '1 / -1', display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+              <button type="button" onClick={() => setIsAdding(false)} style={{ padding: '10px 20px', borderRadius: 'var(--r-md)', cursor: 'pointer', border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-primary)' }}>Cancel</button>
+              <button type="submit" style={{ padding: '10px 20px', borderRadius: 'var(--r-md)', cursor: 'pointer', border: 'none', background: 'var(--orange)', color: '#fff', fontWeight: 800 }}>Save Product</button>
+            </div>
+          </form>
+        </div>
+      )}
 
       <div className="admin-table-wrap">
         <table className="admin-table">
@@ -38,26 +173,39 @@ export default function AdminProducts() {
             </tr>
           </thead>
           <tbody>
-            {productsData.map((p: any) => (
-              <tr key={p.id}>
-                <td>
-                  <img src={p.img} alt={p.name} style={{ width: '40px', height: '40px', borderRadius: '8px', objectFit: 'cover' }} />
-                </td>
-                <td style={{ fontWeight: 600 }}>{p.name}</td>
-                <td>{p.catLabel}</td>
-                <td>{p.price} AED</td>
-                <td>{p.stock}</td>
-                <td>
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <button className="action-btn edit">Edit</button>
-                    <button className="action-btn delete">Delete</button>
-                  </div>
-                </td>
-              </tr>
-            ))}
+            {products.length === 0 ? (
+              <tr><td colSpan={6} style={{ textAlign: 'center' }}>No products found in database. Click 'Load Defaults' to seed.</td></tr>
+            ) : (
+              products.map(p => (
+                <tr key={p.id}>
+                  <td><img src={p.img} alt={p.name} style={{ width: '40px', height: '40px', objectFit: 'contain' }} /></td>
+                  <td style={{ fontWeight: 700 }}>{p.name}</td>
+                  <td>{p.catLabel}</td>
+                  <td>{p.price} AED {p.oldPrice && <span style={{ textDecoration: 'line-through', color: 'var(--text-muted)', fontSize: '12px' }}>{p.oldPrice}</span>}</td>
+                  <td>{p.stock > 0 ? p.stock : 'Unlimited'}</td>
+                  <td>
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                      <button onClick={() => editProduct(p)} style={{ cursor: 'pointer', background: 'transparent', border: 'none', color: '#3b82f6', fontWeight: 600 }}>Edit</button>
+                      <button onClick={() => handleDelete(p.id)} style={{ cursor: 'pointer', background: 'transparent', border: 'none', color: 'var(--danger)', fontWeight: 600 }}>Delete</button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
     </>
   );
 }
+
+const inputStyle = {
+  display: 'block',
+  width: '100%',
+  padding: '10px',
+  marginTop: '4px',
+  borderRadius: 'var(--r-sm)',
+  border: '1px solid var(--border)',
+  background: 'var(--bg-input)',
+  color: 'var(--text-primary)'
+};
