@@ -1,7 +1,9 @@
 'use client';
 import React from 'react';
+import { useRouter } from 'next/navigation';
 
-export default function CartPanel({ cart, isCartOpen, toggleCart, removeFromCart, updateQty, openCheckout }: any) {
+export default function CartPanel({ cart, isCartOpen, toggleCart, removeFromCart, updateQty }: any) {
+  const router = useRouter();
   const subtotal = cart.reduce((acc: number, item: any) => acc + item.price * item.qty, 0);
 
   return (
@@ -47,7 +49,7 @@ export default function CartPanel({ cart, isCartOpen, toggleCart, removeFromCart
               <div className="ct-row"><span>Delivery</span><span>Free</span></div>
               <div className="ct-row total"><span>Total</span><span>{subtotal} AED</span></div>
             </div>
-            <button className="btn-checkout" onClick={openCheckout}>Checkout Securely</button>
+            <button className="btn-checkout" onClick={() => { toggleCart(); router.push('/checkout'); }}>Checkout Securely</button>
           </div>
         )}
       </aside>

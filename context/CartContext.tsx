@@ -15,8 +15,6 @@ type CartContextType = {
   cart: CartItem[];
   wishlist: Set<number>;
   isCartOpen: boolean;
-  isCheckoutOpen: boolean;
-  isSuccessOpen: boolean;
   isMenuOpen: boolean;
   addToCart: (product: any) => void;
   removeFromCart: (id: number) => void;
@@ -25,10 +23,6 @@ type CartContextType = {
   toggleWishlist: (id: number) => void;
   toggleCart: () => void;
   toggleMenu: () => void;
-  openCheckout: () => void;
-  closeCheckout: () => void;
-  handleCheckoutSuccess: () => void;
-  closeSuccess: () => void;
 };
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -38,8 +32,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [wishlist, setWishlist] = useState<Set<number>>(new Set());
   
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
-  const [isSuccessOpen, setIsSuccessOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   // Load from local storage if needed (optional, keeping it simple for now)
@@ -82,21 +74,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const toggleCart = () => setIsCartOpen(!isCartOpen);
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
-  
-  const openCheckout = () => { setIsCartOpen(false); setIsCheckoutOpen(true); };
-  const closeCheckout = () => setIsCheckoutOpen(false);
-  const handleCheckoutSuccess = () => { 
-    setIsCheckoutOpen(false); 
-    clearCart(); 
-    setIsSuccessOpen(true); 
-  };
-  const closeSuccess = () => setIsSuccessOpen(false);
 
   return (
     <CartContext.Provider value={{
-      cart, wishlist, isCartOpen, isCheckoutOpen, isSuccessOpen, isMenuOpen,
+      cart, wishlist, isCartOpen, isMenuOpen,
       addToCart, removeFromCart, updateQty, clearCart, toggleWishlist,
-      toggleCart, toggleMenu, openCheckout, closeCheckout, handleCheckoutSuccess, closeSuccess
+      toggleCart, toggleMenu
     }}>
       {children}
     </CartContext.Provider>

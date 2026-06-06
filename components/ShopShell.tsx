@@ -4,14 +4,11 @@ import { useCart } from '../context/CartContext';
 import Header from './Header';
 import SideNav from './SideNav';
 import CartPanel from './CartPanel';
-import CheckoutModal from './CheckoutModal';
-import SuccessModal from './SuccessModal';
 
 export default function ShopShell() {
   const { 
-    cart, isCartOpen, isMenuOpen, isCheckoutOpen, isSuccessOpen, 
-    toggleCart, toggleMenu, removeFromCart, updateQty, openCheckout, 
-    closeCheckout, handleCheckoutSuccess, closeSuccess 
+    cart, isCartOpen, isMenuOpen, 
+    toggleCart, toggleMenu, removeFromCart, updateQty 
   } = useCart();
 
   const toggleTheme = () => {
@@ -29,17 +26,6 @@ export default function ShopShell() {
         toggleCart={toggleCart} 
         removeFromCart={removeFromCart} 
         updateQty={updateQty} 
-        openCheckout={openCheckout}
-      />
-      <CheckoutModal 
-        isCheckoutOpen={isCheckoutOpen} 
-        closeCheckout={closeCheckout} 
-        cart={cart} 
-        onSuccess={handleCheckoutSuccess} 
-      />
-      <SuccessModal 
-        isSuccessOpen={isSuccessOpen} 
-        closeSuccess={closeSuccess} 
       />
     </>
   );
