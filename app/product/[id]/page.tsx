@@ -73,12 +73,12 @@ export default function ProductDetailPage() {
           <div className="product-detail-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '40px', alignItems: 'start' }}>
             
             {/* Left: Image Presentation */}
-            <div style={{ position: 'relative', background: 'var(--bg-card)', borderRadius: 'var(--r-xl)', padding: '40px', display: 'flex', justifyContent: 'center', alignItems: 'center', boxShadow: 'var(--shadow)', border: '1px solid var(--border)' }}>
-              {product.tag && <span className={`p-tag ${product.tag}`} style={{ position: 'absolute', top: '20px', left: '20px', fontSize: '14px', padding: '6px 12px' }}>{product.tagLabel}</span>}
-              <button className={`wl-btn ${inWL ? 'on' : ''}`} onClick={() => toggleWishlist(product.id)} style={{ position: 'absolute', top: '20px', right: '20px', width: '40px', height: '40px', fontSize: '20px', zIndex: 10 }}>
+            <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+              {product.tag && <span className={`p-tag ${product.tag}`} style={{ position: 'absolute', top: '10px', left: '10px', fontSize: '14px', padding: '6px 12px' }}>{product.tagLabel}</span>}
+              <button className={`wl-btn ${inWL ? 'on' : ''}`} onClick={() => toggleWishlist(product.id)} style={{ position: 'absolute', top: '10px', right: '10px', width: '40px', height: '40px', fontSize: '20px', zIndex: 10 }}>
                 {inWL ? '❤️' : '🤍'}
               </button>
-              <img src={product.img} alt={product.name} style={{ width: '100%', maxWidth: '400px', objectFit: 'contain', filter: 'drop-shadow(0 20px 30px rgba(0,0,0,0.15))', transform: 'scale(1.05)', transition: 'transform 0.3s ease' }} />
+              <img src={product.img} alt={product.name} style={{ width: '100%', maxWidth: '400px', objectFit: 'contain', borderRadius: 'var(--r-md)' }} />
             </div>
 
             {/* Right: Info & Actions */}
@@ -134,15 +134,15 @@ export default function ProductDetailPage() {
               </div>
 
               {/* Trust Badges */}
-              <div style={{ display: 'flex', gap: '20px', marginTop: '20px', paddingTop: '20px', borderTop: '1px solid var(--border)', flexWrap: 'wrap' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 600 }}>
-                  <span style={{ fontSize: '18px' }}>🚚</span> Fast UAE Delivery
+              <div style={{ display: 'flex', gap: '10px', marginTop: '10px', paddingTop: '20px', borderTop: '1px solid var(--border)', overflowX: 'auto', whiteSpace: 'nowrap', paddingBottom: '10px', scrollbarWidth: 'none' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 600, background: 'var(--bg-raised)', padding: '8px 12px', borderRadius: '20px' }}>
+                  <span style={{ fontSize: '16px' }}>🚚</span> Fast UAE Delivery
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 600 }}>
-                  <span style={{ fontSize: '18px' }}>💯</span> 100% Authentic
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 600, background: 'var(--bg-raised)', padding: '8px 12px', borderRadius: '20px' }}>
+                  <span style={{ fontSize: '16px' }}>💯</span> 100% Authentic
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 600 }}>
-                  <span style={{ fontSize: '18px' }}>🔒</span> Secure Checkout
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 600, background: 'var(--bg-raised)', padding: '8px 12px', borderRadius: '20px' }}>
+                  <span style={{ fontSize: '16px' }}>🔒</span> Secure Checkout
                 </div>
               </div>
             </div>
@@ -150,37 +150,41 @@ export default function ProductDetailPage() {
 
           {/* Related Products Section */}
           {related.length > 0 && (
-            <div style={{ marginTop: '80px' }}>
-              <h3 style={{ fontSize: '28px', fontWeight: 900, fontFamily: 'var(--font-d)', marginBottom: '24px', color: 'var(--text-primary)' }}>YOU MAY ALSO LIKE</h3>
-              <div className="related-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '20px' }}>
-                {related.map((p: any) => {
-                  const isWL = wishlist.has(p.id);
-                  return (
-                    <div key={p.id} className="product-card">
-                      <Link href={`/product/${p.id}`} className="prod-link" style={{ display: 'block', textDecoration: 'none', color: 'inherit' }}>
-                        <div className="prod-img-wrap">
-                          {p.tag && <span className={`p-tag ${p.tag}`}>{p.tagLabel}</span>}
-                          <img src={p.img} alt={p.name} loading="lazy" />
+            <div style={{ marginTop: '60px' }}>
+              <h3 style={{ fontSize: '28px', fontWeight: 900, fontFamily: 'var(--font-d)', marginBottom: '16px', color: 'var(--text-primary)' }}>YOU MAY ALSO LIKE</h3>
+              <div className="carousel-outer" style={{ margin: '0 -20px' }}>
+                <div className="carousel-wrap">
+                  <div className="carousel-track">
+                    {related.map((p: any) => {
+                      const isWL = wishlist.has(p.id);
+                      return (
+                        <div key={p.id} className="product-card">
+                          <Link href={`/product/${p.id}`} className="prod-link" style={{ display: 'block', textDecoration: 'none', color: 'inherit' }}>
+                            <div className="prod-img-wrap">
+                              {p.tag && <span className={`p-tag ${p.tag}`}>{p.tagLabel}</span>}
+                              <img src={p.img} alt={p.name} loading="lazy" />
+                            </div>
+                          </Link>
+                          <button className={`wl-btn ${isWL ? 'on' : ''}`} onClick={() => toggleWishlist(p.id)} style={{ zIndex: 10 }}>
+                            {isWL ? '❤️' : '🤍'}
+                          </button>
+                          <div className="prod-info">
+                            <Link href={`/product/${p.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                              <div className="prod-name">{p.name}</div>
+                            </Link>
+                            <div className="prod-price-row">
+                              <div className="prod-price">{p.price} AED</div>
+                              {p.oldPrice && <div className="prod-old">{p.oldPrice} AED</div>}
+                            </div>
+                            <button className="atc-btn" onClick={() => addToCart(p)}>
+                              🛒 Add to Cart
+                            </button>
+                          </div>
                         </div>
-                      </Link>
-                      <button className={`wl-btn ${isWL ? 'on' : ''}`} onClick={() => toggleWishlist(p.id)} style={{ zIndex: 10 }}>
-                        {isWL ? '❤️' : '🤍'}
-                      </button>
-                      <div className="prod-info">
-                        <Link href={`/product/${p.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                          <div className="prod-name">{p.name}</div>
-                        </Link>
-                        <div className="prod-price-row">
-                          <div className="prod-price">{p.price} AED</div>
-                          {p.oldPrice && <div className="prod-old">{p.oldPrice} AED</div>}
-                        </div>
-                        <button className="atc-btn" onClick={() => addToCart(p)}>
-                          🛒 Add to Cart
-                        </button>
-                      </div>
-                    </div>
-                  )
-                })}
+                      )
+                    })}
+                  </div>
+                </div>
               </div>
             </div>
           )}
