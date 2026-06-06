@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import Providers from "../components/Providers";
 
 export const metadata: Metadata = {
   title: "FUEL STORE | Snacks · Energy · Protein",
@@ -20,7 +21,9 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
       </head>
       <body>
-        {children}
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   );

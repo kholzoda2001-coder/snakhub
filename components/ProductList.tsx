@@ -1,6 +1,7 @@
 'use client';
 import React from 'react';
 import { products } from '../data/products';
+import Link from 'next/link';
 
 export default function ProductList({ productsData, activeCategory, searchQuery, addToCart, toggleWishlist, wishlist }: any) {
   const productsToUse = productsData && productsData.length > 0 ? productsData : products;
@@ -27,21 +28,25 @@ export default function ProductList({ productsData, activeCategory, searchQuery,
                 const inWL = wishlist.has(p.id);
                 return (
                   <div key={p.id} className="product-card" style={{ animationDelay: `${i * 0.07}s` }}>
-                    <div className="prod-img-wrap">
-                      {p.tag && <span className={`p-tag ${p.tag}`}>{p.tagLabel}</span>}
-                      <img src={p.img} alt={p.name} loading="lazy" />
-                      <button className={`wl-btn ${inWL ? 'on' : ''}`} onClick={() => toggleWishlist(p.id)}>
-                        {inWL ? '❤️' : '🤍'}
-                      </button>
-                    </div>
+                    <Link href={`/product/${p.id}`} className="prod-link" style={{ display: 'block', textDecoration: 'none', color: 'inherit' }}>
+                      <div className="prod-img-wrap">
+                        {p.tag && <span className={`p-tag ${p.tag}`}>{p.tagLabel}</span>}
+                        <img src={p.img} alt={p.name} loading="lazy" />
+                      </div>
+                    </Link>
+                    <button className={`wl-btn ${inWL ? 'on' : ''}`} onClick={() => toggleWishlist(p.id)} style={{ zIndex: 10 }}>
+                      {inWL ? '❤️' : '🤍'}
+                    </button>
                     <div className="prod-info">
-                      <div className="prod-name">{p.name}</div>
+                      <Link href={`/product/${p.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                        <div className="prod-name">{p.name}</div>
+                      </Link>
                       <div className="prod-price-row">
                         <div className="prod-price">{p.price} AED</div>
                         {p.oldPrice && <div className="prod-old">{p.oldPrice} AED</div>}
                       </div>
                       <div className="prod-stock">✅ In stock</div>
-                      <button className="atc-btn" onClick={() => addToCart(p.id)}>
+                      <button className="atc-btn" onClick={() => addToCart(p)}>
                         🛒 Add to Cart
                       </button>
                     </div>
