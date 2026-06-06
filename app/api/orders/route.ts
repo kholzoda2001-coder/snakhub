@@ -15,7 +15,7 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { name, phone, address, items, total } = body;
+    const { name, phone, address, items, total, paymentMethod } = body;
     
     const newOrder = await prisma.order.create({
       data: {
@@ -24,9 +24,47 @@ export async function POST(req: Request) {
         address,
         items,
         total,
-        status: 'Pending'
+        status: paymentMethod === 'online' ? 'Pending Payment' : 'Pending'
       }
     });
+
+    if (paymentMethod === 'online') {
+      const apiKey = process.env.ZIINA_API_KEY;
+      if (!apiKey) {
+        return NextResponse.json({ error: 'Online payment is currently unavailable. Please use COD.' }, { status: 400 });
+      }
+
+      // Construct absolute URL for Ziina redirect
+      const protocol = req.headers.get('x-forwarded-proto') || 'http';
+      const host = req.headers.get('host') || 'localhost:3000';
+      const domain = `${protocol}://${host}`;
+
+      const ziinaPayload = {
+        amount: Math.round(total * 100), // convert to fils
+        currency_code: 'AED',
+        success_url: `${domain}/checkout/success?order_id=${newOrder.id}`,
+        cancel_url: `${domain}/checkout/cancel?order_id=${newOrder.id}`,
+        test: true
+      };
+
+      const ziinaRes = await fetch('https://api-v2.ziina.com/api/payment_intent', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify(ziinaPayload)
+      });
+
+      if (!ziinaRes.ok) {
+        console.error('Ziina API Error:', await ziinaRes.text());
+        return NextResponse.json({ error: 'Payment gateway error. Please use COD or try again.' }, { status: 500 });
+      }
+
+      const ziinaData = await ziinaRes.json();
+      
+      return NextResponse.json({ ...newOrder, redirect_url: ziinaData.redirect_url }, { status: 201 });
+    }
     
     return NextResponse.json(newOrder, { status: 201 });
   } catch (error) {

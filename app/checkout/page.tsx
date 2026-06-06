@@ -9,6 +9,7 @@ export default function CheckoutPage() {
   const router = useRouter();
   const { cart, clearCart } = useCart();
   const [formData, setFormData] = useState({ name: '', phone: '', address: '' });
+  const [paymentMethod, setPaymentMethod] = useState<'cod' | 'online'>('cod');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -33,16 +34,25 @@ export default function CheckoutPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
+          paymentMethod,
           items: cart,
           total: total
         })
       });
 
+      const data = await res.json();
+
       if (res.ok) {
-        clearCart();
-        router.push('/checkout/success');
+        if (data.redirect_url) {
+          // Redirect to Ziina payment gateway
+          window.location.href = data.redirect_url;
+        } else {
+          // COD or no redirect URL provided
+          clearCart();
+          router.push('/checkout/success');
+        }
       } else {
-        setError('Failed to submit order. Try again.');
+        setError(data.error || 'Failed to submit order. Try again.');
         setLoading(false);
       }
     } catch (err) {
@@ -114,17 +124,45 @@ export default function CheckoutPage() {
                     />
                   </div>
                   
+                  <div style={{ marginTop: '10px' }}>
+                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 800, marginBottom: '12px', color: 'var(--text-secondary)' }}>Payment Method</label>
+                    <div style={{ display: 'flex', gap: '16px', flexDirection: 'column' }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', background: 'var(--bg-input)', padding: '14px', borderRadius: 'var(--r-sm)', border: paymentMethod === 'cod' ? '2px solid var(--orange)' : '1px solid var(--border)' }}>
+                        <input 
+                          type="radio" 
+                          name="payment" 
+                          value="cod" 
+                          checked={paymentMethod === 'cod'} 
+                          onChange={() => setPaymentMethod('cod')}
+                          style={{ width: '18px', height: '18px', accentColor: 'var(--orange)' }}
+                        />
+                        <span style={{ fontWeight: 700, fontSize: '15px' }}>💵 Cash on Delivery (COD)</span>
+                      </label>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', background: 'var(--bg-input)', padding: '14px', borderRadius: 'var(--r-sm)', border: paymentMethod === 'online' ? '2px solid var(--orange)' : '1px solid var(--border)' }}>
+                        <input 
+                          type="radio" 
+                          name="payment" 
+                          value="online" 
+                          checked={paymentMethod === 'online'} 
+                          onChange={() => setPaymentMethod('online')}
+                          style={{ width: '18px', height: '18px', accentColor: 'var(--orange)' }}
+                        />
+                        <span style={{ fontWeight: 700, fontSize: '15px' }}>💳 Pay Online (Ziina)</span>
+                      </label>
+                    </div>
+                  </div>
+                  
                   <button 
                     type="submit" 
                     disabled={loading}
                     style={{ 
-                      marginTop: '10px', background: 'var(--orange)', color: '#fff', fontWeight: 800, padding: '16px', 
+                      marginTop: '20px', background: 'var(--orange)', color: '#fff', fontWeight: 800, padding: '16px', 
                       borderRadius: 'var(--r-md)', fontSize: '16px', display: 'flex', justifyContent: 'center', 
                       alignItems: 'center', gap: '8px', opacity: loading ? 0.7 : 1, cursor: loading ? 'not-allowed' : 'pointer',
                       boxShadow: '0 10px 20px rgba(255, 94, 0, 0.3)', transition: 'all 0.3s ease'
                     }}
                   >
-                    {loading ? 'Processing Securely...' : 'Place Order & Pay on Delivery'}
+                    {loading ? 'Processing Securely...' : paymentMethod === 'cod' ? 'Place Order & Pay on Delivery' : 'Proceed to Payment Securely'}
                   </button>
                   <p style={{ textAlign: 'center', fontSize: '12px', color: 'var(--text-muted)', marginTop: '-5px' }}>
                     By placing this order, you agree to our Terms of Service.
