@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '../../../../lib/prisma';
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function PUT(req: Request, context: { params: Promise<{ id: string }> }) {
   try {
+    const params = await context.params;
     const body = await req.json();
     const updatedProduct = await prisma.product.update({
       where: { id: parseInt(params.id) },
@@ -14,8 +15,9 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   }
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: Request, context: { params: Promise<{ id: string }> }) {
   try {
+    const params = await context.params;
     await prisma.product.delete({
       where: { id: parseInt(params.id) }
     });
