@@ -78,7 +78,7 @@ export default function ProductDetailPage() {
               <button className={`wl-btn ${inWL ? 'on' : ''}`} onClick={() => toggleWishlist(product.id)} style={{ position: 'absolute', top: '10px', right: '10px', width: '40px', height: '40px', fontSize: '20px', zIndex: 10 }}>
                 {inWL ? '❤️' : '🤍'}
               </button>
-              <img src={product.img} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <img src={product.img} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '10px' }} />
             </div>
 
             {/* Right: Info & Actions */}

@@ -28,15 +28,16 @@ export default function Home() {
   // Group products by category
   const categoriesMap = new Map();
   productsData.forEach(p => {
-    if (!categoriesMap.has(p.catLabel)) {
-      categoriesMap.set(p.catLabel, []);
+    if (!categoriesMap.has(p.cat)) {
+      categoriesMap.set(p.cat, { label: p.catLabel, products: [] });
     }
-    categoriesMap.get(p.catLabel).push(p);
+    categoriesMap.get(p.cat).products.push(p);
   });
   
-  const categoryGroups = Array.from(categoriesMap.entries()).map(([label, products]) => ({
-    label: label || 'Other',
-    products
+  const categoryGroups = Array.from(categoriesMap.entries()).map(([slug, data]) => ({
+    slug,
+    label: data.label || 'Other',
+    products: data.products
   }));
 
   return (
@@ -50,6 +51,7 @@ export default function Home() {
           <ProductList 
             key={index}
             title={group.label}
+            categorySlug={group.slug}
             productsData={group.products}
             activeCategory="all" 
             searchQuery="" 

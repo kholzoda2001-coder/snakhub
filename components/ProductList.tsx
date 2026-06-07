@@ -3,7 +3,7 @@ import React from 'react';
 import { products } from '../data/products';
 import Link from 'next/link';
 
-export default function ProductList({ productsData, activeCategory, searchQuery, addToCart, toggleWishlist, wishlist, title }: any) {
+export default function ProductList({ productsData, activeCategory, searchQuery, addToCart, toggleWishlist, wishlist, title, categorySlug }: any) {
   const displayTitle = title || "Hot Picks";
   const [firstWord, ...restWords] = displayTitle.split(" ");
   const restTitle = restWords.join(" ");
@@ -19,7 +19,7 @@ export default function ProductList({ productsData, activeCategory, searchQuery,
     <section className="shop-section" style={{ marginBottom: '40px' }}>
       <div className="sec-head">
         <h2 className="sec-title">{firstWord} {restTitle && <span>{restTitle}</span>}</h2>
-        <a className="view-all" href="#">View All</a>
+        <a className="view-all" href={categorySlug ? `/category/${categorySlug}` : '#'}>View All</a>
       </div>
       <div className="carousel-outer">
         <div className="carousel-wrap">
