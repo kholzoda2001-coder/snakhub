@@ -124,13 +124,7 @@ button{border:none;background:none;cursor:pointer;font-family:var(--font-b);colo
 .menu-btn.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg);width:20px}
 
 .brand-logo{
-  font-family:var(--font-d);font-size:24px;font-weight:900;
-  letter-spacing:.04em;line-height:1;white-space:nowrap;
-}
-.brand-logo em{color:var(--orange);font-style:normal}
-.brand-logo sub{
-  font-size:10px;font-weight:700;letter-spacing:.1em;
-  color:var(--green-dark);vertical-align:sub;margin-left:1px;
+  display:flex;align-items:center;height:100%;
 }
 
 .icon-btn{
@@ -187,12 +181,10 @@ button{border:none;background:none;cursor:pointer;font-family:var(--font-b);colo
   display:flex;align-items:center;justify-content:space-between;
   padding:18px 18px 16px;border-bottom:1px solid var(--border);
 }
-.panel-logo{display:flex;align-items:center;height:100%}
-.panel-logo img { height: 46px; width: auto; object-fit: contain; display: block; }
-.brand-logo{display:flex;align-items:center;height:100%}
+.panel-logo{display:flex;align-items:center;height:50px}
+.panel-logo img { height: 100%; max-height: 44px; width: auto; object-fit: contain; display: block; padding: 2px 0; }
 .brand-logo a{display:flex;align-items:center;height:100%}
-.brand-logo img { height: 46px; width: auto; object-fit: contain; display: block; }
-.panel-logo em{color:var(--orange);font-style:normal}
+.brand-logo img { height: 100%; max-height: 44px; width: auto; object-fit: contain; display: block; padding: 2px 0; }
 .close-x{
   width:34px;height:34px;border-radius:50%;
   background:var(--bg-raised);color:var(--text-secondary);
@@ -809,8 +801,7 @@ button{border:none;background:none;cursor:pointer;font-family:var(--font-b);colo
   border-top:1px solid var(--border);
 }
 .ft-brand{margin-bottom:12px;display:flex;align-items:center;height:60px}
-.ft-brand img { height: 60px; width: auto; object-fit: contain; display: block; filter: brightness(1); }
-.ft-brand em{color:var(--orange);font-style:normal}
+.ft-brand img { height: 100%; max-height: 56px; width: auto; object-fit: contain; display: block; filter: brightness(1); padding: 2px 0; }
 .ft-tag{font-size:13px;color:var(--text-secondary);margin-bottom:18px}
 .ft-links{display:flex;flex-wrap:wrap;gap:4px 14px;margin-bottom:18px}
 .ft-links a{font-size:13px;color:var(--text-secondary);transition:color var(--trans)}
@@ -869,7 +860,7 @@ button{border:none;background:none;cursor:pointer;font-family:var(--font-b);colo
   .wa-fab{bottom:28px}
   .toast{bottom:28px}
   .site-header{padding:0 32px;height:70px}
-  .brand-logo img { height: 54px; }
+  .brand-logo img { max-height: 54px; }
   .search-wrap{padding:14px 32px 8px}
   .hero{margin:16px 32px 0;min-height:300px}
   .sec-head{padding:30px 32px 12px}
