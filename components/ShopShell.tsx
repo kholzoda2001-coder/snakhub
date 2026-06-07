@@ -4,6 +4,7 @@ import { useCart } from '../context/CartContext';
 import Header from './Header';
 import SideNav from './SideNav';
 import CartPanel from './CartPanel';
+import WhatsAppFAB from './WhatsAppFAB';
 
 export default function ShopShell() {
   const { 
@@ -27,6 +28,7 @@ export default function ShopShell() {
         removeFromCart={removeFromCart} 
         updateQty={updateQty} 
       />
+      <WhatsAppFAB />
     </>
   );
 }
