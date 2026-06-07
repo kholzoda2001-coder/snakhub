@@ -510,7 +510,7 @@ button{border:none;background:none;cursor:pointer;font-family:var(--font-b);colo
 .carousel-track{
   display:flex;gap:14px;
   padding:0 16px 4px;
-  overflow-x:auto;scroll-snap-type:x mandatory;
+  overflow-x:auto;
   scrollbar-width:none;-ms-overflow-style:none;
   -webkit-overflow-scrolling:touch;
   cursor:grab;
@@ -542,7 +542,6 @@ button{border:none;background:none;cursor:pointer;font-family:var(--font-b);colo
   background:var(--bg-card);border:1px solid var(--border);
   border-radius:var(--r-md);overflow:hidden;
   display:flex;flex-direction:column;
-  scroll-snap-align:start;
   transition:transform var(--trans),border-color var(--trans),box-shadow var(--trans);
   position:relative;
 }
