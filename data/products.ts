@@ -1,5 +1,5 @@
 export const products = [
-  {id:1,name:"Monster Ultra Zero",cat:"energy",catLabel:"Energy Drinks",price:18,oldPrice:null,tag:"new",tagLabel:"NEW",
+  {id:1,name:"Monster Ultra Zero",cat:"monster",catLabel:"Monster",price:18,oldPrice:null,tag:"new",tagLabel:"NEW",
    img:"https://images.unsplash.com/photo-1622543925917-763c34d1a86e?w=500&q=80",
    viewers:14,stock:9,desc:"Zero sugar, zero calories. Pure energy with a light citrus bite. Official sponsor of the 2026 FIFA World Cup."},
   {id:2,name:"Doritos Beef Taco World Cup",cat:"chips",catLabel:"Chips",price:45,oldPrice:null,tag:"hot",tagLabel:"HOT",
@@ -11,7 +11,7 @@ export const products = [
   {id:4,name:"Takis Fuego Rolled Tortilla",cat:"chips",catLabel:"Chips",price:25,oldPrice:null,tag:"hot",tagLabel:"HOT",
    img:"https://images.unsplash.com/photo-1621797948286-f0bd58c17f9f?w=500&q=80",
    viewers:22,stock:15,desc:"Rolled tortilla chips with hot chilli pepper and lime. The snack that dares you to stop."},
-  {id:5,name:"Red Bull Summer Edition",cat:"energy",catLabel:"Energy Drinks",price:16,oldPrice:null,tag:null,tagLabel:null,
+  {id:5,name:"Red Bull Summer Edition",cat:"redbull",catLabel:"Red Bull",price:16,oldPrice:null,tag:null,tagLabel:null,
    img:"https://images.unsplash.com/photo-1581006852262-e4307cf6283a?w=500&q=80",
    viewers:19,stock:30,desc:"Seasonal summer flavour. Same Red Bull energy, refreshingly light. Perfect for warm UAE days."},
   {id:6,name:"Oreo Blackout Stuf Cookies",cat:"cookies",catLabel:"Cookies",price:22,oldPrice:28,tag:"sale",tagLabel:"SALE",
