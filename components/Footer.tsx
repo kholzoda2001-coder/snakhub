@@ -11,6 +11,7 @@ export default function Footer() {
       <div className="ft-links">
         <Link href="/about">About Us</Link>
         <Link href="/contact">Contact Support</Link>
+        <Link href="/faq">FAQ</Link>
         <Link href="/privacy">Privacy Policy</Link>
         <Link href="/terms">Terms & Conditions</Link>
       </div>
