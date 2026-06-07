@@ -4,6 +4,7 @@ import Hero from '../components/Hero';
 import ProductList from '../components/ProductList';
 import CategoryCircles from '../components/CategoryCircles';
 import ShopShell from '../components/ShopShell';
+import Footer from '../components/Footer';
 import { useCart } from '../context/CartContext';
 
 export default function Home() {
@@ -70,6 +71,7 @@ export default function Home() {
           toggleWishlist={toggleWishlist} 
         />
       )}
+      <Footer />
     </>
   );
 }

@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import ShopShell from '../../components/ShopShell';
+import Footer from '../../components/Footer';
 import { useCart } from '../../context/CartContext';
 
 export default function WishlistPage() {
@@ -93,6 +94,7 @@ export default function WishlistPage() {
           )}
         </div>
       </div>
+      <Footer />
     </>
   );
 }

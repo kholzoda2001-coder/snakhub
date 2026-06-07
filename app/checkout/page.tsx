@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '../../context/CartContext';
 import ShopShell from '../../components/ShopShell';
+import Footer from '../../components/Footer';
 import Link from 'next/link';
 
 export default function CheckoutPage() {
@@ -229,6 +230,7 @@ export default function CheckoutPage() {
           )}
         </div>
       </div>
+      <Footer />
     </>
   );
 }

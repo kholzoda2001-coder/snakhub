@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import ShopShell from '../../../components/ShopShell';
+import Footer from '../../../components/Footer';
 import { useCart } from '../../../context/CartContext';
 import { products } from '../../../data/products'; // fallback data
 
@@ -191,6 +192,7 @@ export default function ProductDetailPage() {
 
         </div>
       </div>
+      <Footer />
     </>
   );
 }
