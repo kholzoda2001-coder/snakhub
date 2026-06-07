@@ -11,7 +11,7 @@ export default function SideNav({ isMenuOpen, toggleMenu }: any) {
       ></div>
       <nav className={`side-nav ${isMenuOpen ? 'active' : ''}`}>
         <div className="panel-header">
-          <div className="panel-logo"><em>FUEL</em> STORE<sub>AE</sub></div>
+          <div className="panel-logo"><img src="/logo.jpg" alt="Snack Hub" /></div>
           <button className="close-x" onClick={toggleMenu} aria-label="Close menu">✕</button>
         </div>
         <div className="side-links">

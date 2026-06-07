@@ -5,7 +5,7 @@ import Link from 'next/link';
 export default function Footer() {
   return (
     <footer className="site-footer">
-      <div className="ft-brand"><em>FUEL</em> STORE<sub>AE</sub></div>
+      <div className="ft-brand"><img src="/logo.jpg" alt="Snack Hub" /></div>
       <div className="ft-tag">Your premium snacks & energy destination in the UAE. Fuel your day, the right way.</div>
       
       <div className="ft-links">

@@ -1,5 +1,6 @@
 'use client';
 import React from 'react';
+import Link from 'next/link';
 
 export default function Header({ toggleTheme, toggleCart, toggleMenu, cartCount }: any) {
   return (
@@ -13,7 +14,11 @@ export default function Header({ toggleTheme, toggleCart, toggleMenu, cartCount 
           <button className="menu-btn" onClick={toggleMenu} aria-label="Menu">
             <span></span><span></span><span></span>
           </button>
-          <div className="brand-logo"><em>FUEL</em> STORE<sub>AE</sub></div>
+          <div className="brand-logo">
+            <Link href="/" style={{ display: 'block', textDecoration: 'none' }}>
+              <img src="/logo.jpg" alt="Snack Hub" />
+            </Link>
+          </div>
         </div>
         <div className="header-right">
           <button className="theme-btn" onClick={toggleTheme} aria-label="Toggle theme" title="Toggle theme">🌙</button>

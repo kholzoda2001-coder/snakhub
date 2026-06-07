@@ -188,6 +188,7 @@ button{border:none;background:none;cursor:pointer;font-family:var(--font-b);colo
   padding:18px 18px 16px;border-bottom:1px solid var(--border);
 }
 .panel-logo{font-family:var(--font-d);font-size:22px;font-weight:900;letter-spacing:.04em}
+.panel-logo img { height: 38px; width: auto; object-fit: contain; display: block; }
 .panel-logo em{color:var(--orange);font-style:normal}
 .close-x{
   width:34px;height:34px;border-radius:50%;
@@ -804,7 +805,8 @@ button{border:none;background:none;cursor:pointer;font-family:var(--font-b);colo
   margin:32px 16px 20px;padding:24px 0 0;
   border-top:1px solid var(--border);
 }
-.ft-brand{font-family:var(--font-d);font-size:26px;font-weight:900;letter-spacing:.02em;margin-bottom:4px}
+.ft-brand{font-family:var(--font-d);font-size:26px;font-weight:900;letter-spacing:.02em;margin-bottom:12px}
+.ft-brand img { height: 48px; width: auto; object-fit: contain; display: block; filter: brightness(1); }
 .ft-brand em{color:var(--orange);font-style:normal}
 .ft-tag{font-size:13px;color:var(--text-secondary);margin-bottom:18px}
 .ft-links{display:flex;flex-wrap:wrap;gap:4px 14px;margin-bottom:18px}
