@@ -810,6 +810,14 @@ button{border:none;background:none;cursor:pointer;font-family:var(--font-b);colo
 .ft-links{display:flex;flex-wrap:wrap;gap:4px 14px;margin-bottom:18px}
 .ft-links a{font-size:13px;color:var(--text-secondary);transition:color var(--trans)}
 .ft-links a:hover{color:var(--orange)}
+.ft-socials{display:flex;gap:16px;margin-bottom:20px}
+.ft-social-link{
+  width:36px;height:36px;border-radius:50%;
+  background:var(--bg-raised);display:flex;align-items:center;justify-content:center;
+  color:var(--text-primary);transition:var(--trans);
+}
+.ft-social-link:hover{background:var(--orange);color:#fff;transform:translateY(-2px)}
+.ft-social-link svg{width:18px;height:18px;fill:currentColor}
 .ft-copy{font-size:11px;color:var(--text-muted);padding-bottom:8px}
 
 /* =========================================================
