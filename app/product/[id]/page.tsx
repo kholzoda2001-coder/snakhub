@@ -73,12 +73,12 @@ export default function ProductDetailPage() {
           <div className="product-detail-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '40px', alignItems: 'start' }}>
             
             {/* Left: Image Presentation */}
-            <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+            <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', maxWidth: '400px', margin: '0 auto', aspectRatio: '1/1', background: 'var(--bg-raised)', borderRadius: 'var(--r-md)', overflow: 'hidden' }}>
               {product.tag && <span className={`p-tag ${product.tag}`} style={{ position: 'absolute', top: '10px', left: '10px', fontSize: '14px', padding: '6px 12px' }}>{product.tagLabel}</span>}
               <button className={`wl-btn ${inWL ? 'on' : ''}`} onClick={() => toggleWishlist(product.id)} style={{ position: 'absolute', top: '10px', right: '10px', width: '40px', height: '40px', fontSize: '20px', zIndex: 10 }}>
                 {inWL ? '❤️' : '🤍'}
               </button>
-              <img src={product.img} alt={product.name} style={{ width: '100%', maxWidth: '400px', objectFit: 'contain', borderRadius: 'var(--r-md)' }} />
+              <img src={product.img} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             </div>
 
             {/* Right: Info & Actions */}

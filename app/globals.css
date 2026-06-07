@@ -245,7 +245,7 @@ button{border:none;background:none;cursor:pointer;font-family:var(--font-b);colo
 }
 .ci-img{
   width:60px;height:60px;border-radius:var(--r-sm);flex-shrink:0;
-  object-fit:contain;background:var(--bg);aspect-ratio:1;
+  object-fit:cover;background:var(--bg);aspect-ratio:1;
 }
 .ci-info{flex:1;min-width:0}
 .ci-name{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -557,7 +557,7 @@ button{border:none;background:none;cursor:pointer;font-family:var(--font-b);colo
   background:var(--bg-raised);flex-shrink:0;
 }
 .prod-img-wrap img{
-  width:100%;height:100%;object-fit:contain;
+  width:100%;height:100%;object-fit:cover;
   transition:transform .4s var(--ease);
 }
 .product-card:hover .prod-img-wrap img{transform:scale(1.07)}
@@ -697,7 +697,7 @@ button{border:none;background:none;cursor:pointer;font-family:var(--font-b);colo
   background:var(--text-muted);margin:0 auto 18px;
 }
 .modal-img{
-  width:100%;aspect-ratio:1/1;object-fit:contain;
+  width:100%;aspect-ratio:1/1;object-fit:cover;
   border-radius:var(--r-md);margin-bottom:16px;background:var(--bg-raised);
 }
 .modal-cat{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--orange);margin-bottom:4px}
