@@ -61,7 +61,7 @@ export default function ProductDetailPage() {
   return (
     <>
       <ShopShell />
-      <div style={{ paddingTop: '80px', minHeight: '100vh', background: 'var(--bg-main)' }}>
+      <div style={{ paddingTop: '20px', minHeight: '100vh', background: 'var(--bg-main)' }}>
         <div className="container" style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px', paddingBottom: '60px' }}>
           
           <div style={{ marginBottom: '24px' }}>

@@ -22,7 +22,7 @@ export default function CheckoutSuccessPage() {
         }
       `}} />
       
-      <div style={{ paddingTop: '120px', minHeight: '100vh', background: 'var(--bg-main)', display: 'flex', justifyContent: 'center', paddingBottom: '60px' }}>
+      <div style={{ paddingTop: '40px', minHeight: '100vh', background: 'var(--bg-main)', display: 'flex', justifyContent: 'center', paddingBottom: '60px' }}>
         <div style={{ maxWidth: '600px', width: '100%', padding: '0 20px', textAlign: 'center' }}>
           <div style={{ 
             background: 'var(--bg-card)', padding: '50px 30px', borderRadius: 'var(--r-xl)', 
