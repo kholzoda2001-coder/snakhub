@@ -1,10 +1,10 @@
 export const products = [
   // RED BULL
   {id:1,name:"Red Bull Energy Drink",cat:"redbull",catLabel:"Red Bull",price:12,oldPrice:null,tag:"hot",tagLabel:"HOT",
-   img:"https://images.unsplash.com/photo-1596541680517-106ea4a4805e?w=500&q=80",
+   img:"https://images.unsplash.com/photo-1581006852262-e4307cf6283a?w=500&q=80",
    viewers:45,stock:100,desc:"Vitalizes Body and Mind. The classic energy drink."},
   {id:2,name:"Red Bull Sugarfree",cat:"redbull",catLabel:"Red Bull",price:12,oldPrice:null,tag:null,tagLabel:null,
-   img:"https://images.unsplash.com/photo-1596541680517-106ea4a4805e?w=500&q=80",
+   img:"https://images.unsplash.com/photo-1581006852262-e4307cf6283a?w=500&q=80",
    viewers:20,stock:80,desc:"Wings without sugar."},
   {id:3,name:"Red Bull Summer Edition",cat:"redbull",catLabel:"Red Bull",price:16,oldPrice:18,tag:"sale",tagLabel:"SALE",
    img:"https://images.unsplash.com/photo-1581006852262-e4307cf6283a?w=500&q=80",

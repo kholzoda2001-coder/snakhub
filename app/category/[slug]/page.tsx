@@ -67,8 +67,8 @@ export default function CategoryPage({ params }: { params: { slug: string } }) {
           ) : (
             <div style={{ 
               display: 'grid', 
-              gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', 
-              gap: '20px' 
+              gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', 
+              gap: '16px' 
             }}>
               {productsData.map((p: any, i: number) => {
                 const inWL = wishlist.has(p.id);
@@ -77,7 +77,7 @@ export default function CategoryPage({ params }: { params: { slug: string } }) {
                     <Link href={`/product/${p.id}`} className="prod-link" style={{ display: 'block', textDecoration: 'none', color: 'inherit' }}>
                       <div className="prod-img-wrap">
                         {p.tag && <span className={`p-tag ${p.tag}`}>{p.tagLabel}</span>}
-                        <img src={p.img} alt={p.name} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                        <img src={p.img} alt={p.name} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       </div>
                     </Link>
                     <button className={`wl-btn ${inWL ? 'on' : ''}`} onClick={() => toggleWishlist(p.id)} style={{ zIndex: 10 }}>
