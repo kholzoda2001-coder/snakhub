@@ -23,29 +23,26 @@ export default function SideNav({ isMenuOpen, toggleMenu }: any) {
             Categories
           </div>
           
-          <Link href="/#shop" onClick={toggleMenu}>
-            ⚡ <span>Energy Drinks</span>
+          <Link href="/category/redbull" onClick={toggleMenu}>
+            ⚡ <span>Red Bull</span>
           </Link>
-          <Link href="/#shop" onClick={toggleMenu}>
-            🥤 <span>Protein & Fitness</span>
+          <Link href="/category/monster" onClick={toggleMenu}>
+            🟢 <span>Monster Energy</span>
           </Link>
-          <Link href="/#shop" onClick={toggleMenu}>
+          <Link href="/category/protein" onClick={toggleMenu}>
+            💪 <span>Protein & Fitness</span>
+          </Link>
+          <Link href="/category/snacks" onClick={toggleMenu}>
             🍟 <span>Chips & Snacks</span>
-          </Link>
-          <Link href="/#shop" onClick={toggleMenu}>
-            🍬 <span>Candy & Sweets</span>
-          </Link>
-          <Link href="/#shop" onClick={toggleMenu}>
-            🥗 <span>Healthy & Keto</span>
           </Link>
 
           <div style={{ padding: '12px 18px 4px', fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '8px' }}>
             My Account
           </div>
 
-          <a href="#" onClick={toggleMenu}>
+          <Link href="/wishlist" onClick={toggleMenu}>
             ❤️ <span>My Wishlist</span>
-          </a>
+          </Link>
           <a href="#" onClick={toggleMenu}>
             📦 <span>My Orders</span>
           </a>
