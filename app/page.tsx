@@ -25,19 +25,49 @@ export default function Home() {
       });
   }, []);
 
+  // Group products by category
+  const categoriesMap = new Map();
+  productsData.forEach(p => {
+    if (!categoriesMap.has(p.catLabel)) {
+      categoriesMap.set(p.catLabel, []);
+    }
+    categoriesMap.get(p.catLabel).push(p);
+  });
+  
+  const categoryGroups = Array.from(categoriesMap.entries()).map(([label, products]) => ({
+    label: label || 'Other',
+    products
+  }));
+
   return (
     <>
       <ShopShell />
       <Hero />
       <CategoryCircles />
-      <ProductList 
-        productsData={productsData}
-        activeCategory="all" 
-        searchQuery="" 
-        addToCart={addToCart} 
-        wishlist={wishlist} 
-        toggleWishlist={toggleWishlist} 
-      />
+      
+      {categoryGroups.length > 0 ? (
+        categoryGroups.map((group, index) => (
+          <ProductList 
+            key={index}
+            title={group.label}
+            productsData={group.products}
+            activeCategory="all" 
+            searchQuery="" 
+            addToCart={addToCart} 
+            wishlist={wishlist} 
+            toggleWishlist={toggleWishlist} 
+          />
+        ))
+      ) : (
+        <ProductList 
+          productsData={[]}
+          activeCategory="all" 
+          searchQuery="" 
+          addToCart={addToCart} 
+          wishlist={wishlist} 
+          toggleWishlist={toggleWishlist} 
+        />
+      )}
     </>
   );
 }

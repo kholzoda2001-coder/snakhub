@@ -3,7 +3,10 @@ import React from 'react';
 import { products } from '../data/products';
 import Link from 'next/link';
 
-export default function ProductList({ productsData, activeCategory, searchQuery, addToCart, toggleWishlist, wishlist }: any) {
+export default function ProductList({ productsData, activeCategory, searchQuery, addToCart, toggleWishlist, wishlist, title }: any) {
+  const displayTitle = title || "Hot Picks";
+  const [firstWord, ...restWords] = displayTitle.split(" ");
+  const restTitle = restWords.join(" ");
   const productsToUse = productsData && productsData.length > 0 ? productsData : products;
   
   const filtered = productsToUse.filter((p: any) => {
@@ -13,9 +16,9 @@ export default function ProductList({ productsData, activeCategory, searchQuery,
   });
 
   return (
-    <section id="shop">
+    <section className="shop-section" style={{ marginBottom: '40px' }}>
       <div className="sec-head">
-        <h2 className="sec-title">Hot <span>Picks</span></h2>
+        <h2 className="sec-title">{firstWord} {restTitle && <span>{restTitle}</span>}</h2>
         <a className="view-all" href="#">View All</a>
       </div>
       <div className="carousel-outer">
