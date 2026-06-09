@@ -6,10 +6,20 @@ import ShopShell from '../../components/ShopShell';
 import Footer from '../../components/Footer';
 import Link from 'next/link';
 
+const UAE_CITIES = [
+  'Dubai',
+  'Abu Dhabi',
+  'Sharjah',
+  'Ajman',
+  'Ras Al Khaimah',
+  'Fujairah',
+  'Umm Al Quwain'
+];
+
 export default function CheckoutPage() {
   const router = useRouter();
   const { cart, clearCart } = useCart();
-  const [formData, setFormData] = useState({ name: '', phone: '', address: '' });
+  const [formData, setFormData] = useState({ name: '', phone: '', city: 'Dubai', address: '' });
   const [paymentMethod, setPaymentMethod] = useState<'cod' | 'online'>('cod');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -18,14 +28,9 @@ export default function CheckoutPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (cart.length === 0) {
-      setError('Your cart is empty');
-      return;
-    }
-    if (!formData.name || !formData.phone || !formData.address) {
-      setError('Please fill all fields');
-      return;
-    }
+    if (cart.length === 0) return setError('Your cart is empty');
+    if (!formData.name || !formData.phone || !formData.city || !formData.address) return setError('Please fill all fields');
+    
     setError('');
     setLoading(true);
 
@@ -45,10 +50,8 @@ export default function CheckoutPage() {
 
       if (res.ok) {
         if (data.redirect_url) {
-          // Redirect to Ziina payment gateway
           window.location.href = data.redirect_url;
         } else {
-          // COD or no redirect URL provided
           clearCart();
           router.push('/checkout/success');
         }
@@ -65,16 +68,17 @@ export default function CheckoutPage() {
   return (
     <>
       <ShopShell />
-      <div style={{ paddingTop: '20px', minHeight: '100vh', background: 'var(--bg-main)' }}>
-        <div className="container" style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px', paddingBottom: '60px' }}>
+      <div style={{ paddingTop: '30px', minHeight: '100vh', background: 'var(--bg-main)' }}>
+        <div className="container" style={{ maxWidth: '700px', margin: '0 auto', padding: '0 20px', paddingBottom: '80px' }}>
           
           <div style={{ marginBottom: '24px' }}>
-            <button onClick={() => router.back()} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', fontSize: '14px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span>←</span> Back to Cart
+            <button onClick={() => router.back()} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', fontSize: '14px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', padding: 0 }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+              Back to Cart
             </button>
           </div>
 
-          <h1 style={{ fontSize: 'clamp(28px, 4vw, 36px)', fontWeight: 900, fontFamily: 'var(--font-d)', marginBottom: '30px', color: 'var(--text-primary)' }}>SECURE CHECKOUT</h1>
+          <h1 style={{ fontSize: 'clamp(28px, 5vw, 36px)', fontWeight: 900, fontFamily: 'var(--font-d)', marginBottom: '30px', color: 'var(--text-primary)' }}>SECURE CHECKOUT</h1>
 
           {cart.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '60px 20px', background: 'var(--bg-card)', borderRadius: 'var(--r-xl)', boxShadow: 'var(--shadow)', border: '1px solid var(--border)' }}>
@@ -86,151 +90,195 @@ export default function CheckoutPage() {
               </Link>
             </div>
           ) : (
-            <div className="checkout-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '40px', alignItems: 'start' }}>
+            <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--r-xl)', boxShadow: '0 20px 40px rgba(0,0,0,0.06)', border: '1px solid var(--border)', overflow: 'hidden' }}>
               
-              {/* Left Column: Form */}
-              <div style={{ background: 'var(--bg-card)', padding: '30px', borderRadius: 'var(--r-xl)', boxShadow: 'var(--shadow)', border: '1px solid var(--border)' }}>
-                <h2 style={{ fontSize: '20px', fontWeight: 800, marginBottom: '20px', borderBottom: '2px solid var(--border)', paddingBottom: '10px' }}>Shipping Details</h2>
-                
-                {error && <div style={{ background: '#fee2e2', color: '#dc2626', padding: '12px', borderRadius: 'var(--r-sm)', marginBottom: '20px', fontWeight: 700, fontSize: '14px' }}>{error}</div>}
-
-                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 800, marginBottom: '8px', color: 'var(--text-secondary)' }}>Full Name</label>
-                    <input 
-                      type="text" 
-                      value={formData.name}
-                      onChange={e => setFormData({...formData, name: e.target.value})}
-                      style={{ width: '100%', padding: '14px', borderRadius: 'var(--r-sm)', border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)', outline: 'none', fontSize: '15px' }}
-                      placeholder="e.g. Ali Rahman"
-                    />
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 800, marginBottom: '8px', color: 'var(--text-secondary)' }}>Phone Number</label>
-                    <input 
-                      type="tel" 
-                      value={formData.phone}
-                      onChange={e => setFormData({...formData, phone: e.target.value})}
-                      style={{ width: '100%', padding: '14px', borderRadius: 'var(--r-sm)', border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)', outline: 'none', fontSize: '15px' }}
-                      placeholder="+971 50 000 0000"
-                    />
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 800, marginBottom: '8px', color: 'var(--text-secondary)' }}>Delivery Address</label>
-                    <textarea 
-                      value={formData.address}
-                      onChange={e => setFormData({...formData, address: e.target.value})}
-                      style={{ width: '100%', padding: '14px', borderRadius: 'var(--r-sm)', border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)', outline: 'none', height: '100px', resize: 'none', fontSize: '15px' }}
-                      placeholder="City, Area, Street, Building, Apt number"
-                    />
-                  </div>
-                  
-                  <div style={{ marginTop: '10px' }}>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 800, marginBottom: '12px', color: 'var(--text-secondary)' }}>Payment Method</label>
-                    <div style={{ display: 'flex', gap: '16px', flexDirection: 'column' }}>
-                      <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', background: 'var(--bg-input)', padding: '14px', borderRadius: 'var(--r-sm)', border: paymentMethod === 'cod' ? '2px solid var(--orange)' : '1px solid var(--border)' }}>
-                        <input 
-                          type="radio" 
-                          name="payment" 
-                          value="cod" 
-                          checked={paymentMethod === 'cod'} 
-                          onChange={() => setPaymentMethod('cod')}
-                          style={{ width: '18px', height: '18px', accentColor: 'var(--orange)' }}
-                        />
-                        <span style={{ fontWeight: 700, fontSize: '15px' }}>💵 Cash on Delivery (COD)</span>
-                      </label>
-                      <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', background: 'var(--bg-input)', padding: '14px', borderRadius: 'var(--r-sm)', border: paymentMethod === 'online' ? '2px solid var(--orange)' : '1px solid var(--border)' }}>
-                        <input 
-                          type="radio" 
-                          name="payment" 
-                          value="online" 
-                          checked={paymentMethod === 'online'} 
-                          onChange={() => setPaymentMethod('online')}
-                          style={{ width: '18px', height: '18px', accentColor: 'var(--orange)' }}
-                        />
-                        <span style={{ fontWeight: 700, fontSize: '15px' }}>💳 Pay Online (Ziina)</span>
-                      </label>
-                    </div>
-                  </div>
-                  
-                  <button 
-                    type="submit" 
-                    disabled={loading}
-                    style={{ 
-                      marginTop: '20px', background: 'var(--orange)', color: '#fff', fontWeight: 800, padding: '16px', 
-                      borderRadius: 'var(--r-md)', fontSize: '16px', display: 'flex', justifyContent: 'center', 
-                      alignItems: 'center', gap: '8px', opacity: loading ? 0.7 : 1, cursor: loading ? 'not-allowed' : 'pointer',
-                      boxShadow: '0 10px 20px rgba(255, 94, 0, 0.3)', transition: 'all 0.3s ease'
-                    }}
-                  >
-                    {loading ? 'Processing Securely...' : paymentMethod === 'cod' ? 'Place Order & Pay on Delivery' : 'Proceed to Payment Securely'}
-                  </button>
-                  <p style={{ textAlign: 'center', fontSize: '12px', color: 'var(--text-muted)', marginTop: '-5px' }}>
-                    By placing this order, you agree to our Terms of Service.
-                  </p>
-                </form>
+              {/* Trust Bar */}
+              <div style={{ background: 'linear-gradient(90deg, rgba(255,107,0,0.08) 0%, rgba(255,145,0,0.08) 100%)', padding: '12px 20px', display: 'flex', gap: '20px', justifyContent: 'center', flexWrap: 'wrap', borderBottom: '1px solid rgba(255,107,0,0.15)' }}>
+                <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--orange)', display: 'flex', alignItems: 'center', gap: '6px' }}>🔒 256-bit Secure</span>
+                <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--orange)', display: 'flex', alignItems: 'center', gap: '6px' }}>🚚 Fast Delivery</span>
               </div>
 
-              {/* Right Column: Order Summary */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                <div style={{ background: 'var(--bg-card)', padding: '30px', borderRadius: 'var(--r-xl)', boxShadow: 'var(--shadow)', border: '1px solid var(--border)' }}>
-                  <h2 style={{ fontSize: '20px', fontWeight: 800, marginBottom: '20px', borderBottom: '2px solid var(--border)', paddingBottom: '10px' }}>Order Summary</h2>
+              <div style={{ padding: '30px' }}>
+                {error && <div style={{ background: '#fee2e2', color: '#dc2626', padding: '16px', borderRadius: 'var(--r-sm)', marginBottom: '24px', fontWeight: 700, fontSize: '14px', display: 'flex', alignItems: 'center', gap: '10px' }}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>{error}</div>}
+
+                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
                   
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxHeight: '350px', overflowY: 'auto', paddingRight: '10px', marginBottom: '20px' }}>
-                    {cart.map((item: any) => (
-                      <div key={item.id} style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-                        <div style={{ width: '60px', height: '60px', borderRadius: 'var(--r-sm)', background: 'var(--bg-raised)', display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
-                          <img src={item.img} alt={item.name} style={{ width: '50px', height: '50px', objectFit: 'contain' }} />
-                          <span style={{ position: 'absolute', top: '-8px', right: '-8px', background: 'var(--text-primary)', color: 'var(--bg-main)', fontSize: '11px', fontWeight: 800, width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%' }}>
-                            {item.qty}
-                          </span>
-                        </div>
-                        <div style={{ flex: 1 }}>
-                          <h4 style={{ fontSize: '14px', fontWeight: 700, margin: '0 0 4px 0' }}>{item.name}</h4>
-                          <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{item.catLabel}</span>
-                        </div>
-                        <div style={{ fontWeight: 800, fontSize: '15px' }}>
-                          {item.price * item.qty} AED
+                  {/* Shipping Section */}
+                  <div>
+                    <h2 style={{ fontSize: '18px', fontWeight: 800, marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <span style={{ background: 'var(--orange)', color: '#fff', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', fontSize: '12px' }}>1</span>
+                      Shipping Details
+                    </h2>
+                    <div style={{ display: 'grid', gap: '16px' }}>
+                      <div className="input-group">
+                        <label style={{ display: 'block', fontSize: '13px', fontWeight: 800, marginBottom: '8px', color: 'var(--text-secondary)' }}>Full Name</label>
+                        <input 
+                          type="text" 
+                          value={formData.name}
+                          onChange={e => setFormData({...formData, name: e.target.value})}
+                          style={{ width: '100%', padding: '16px', borderRadius: 'var(--r-md)', border: '2px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)', outline: 'none', fontSize: '15px', transition: 'all 0.2s', fontWeight: 500 }}
+                          placeholder="e.g. Ali Rahman"
+                          onFocus={(e) => e.target.style.borderColor = 'var(--orange)'}
+                          onBlur={(e) => e.target.style.borderColor = 'var(--border)'}
+                        />
+                      </div>
+                      <div className="input-group">
+                        <label style={{ display: 'block', fontSize: '13px', fontWeight: 800, marginBottom: '8px', color: 'var(--text-secondary)' }}>Phone Number</label>
+                        <input 
+                          type="tel" 
+                          value={formData.phone}
+                          onChange={e => setFormData({...formData, phone: e.target.value})}
+                          style={{ width: '100%', padding: '16px', borderRadius: 'var(--r-md)', border: '2px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)', outline: 'none', fontSize: '15px', transition: 'all 0.2s', fontWeight: 500 }}
+                          placeholder="+971 50 000 0000"
+                          onFocus={(e) => e.target.style.borderColor = 'var(--orange)'}
+                          onBlur={(e) => e.target.style.borderColor = 'var(--border)'}
+                        />
+                      </div>
+                      <div className="input-group">
+                        <label style={{ display: 'block', fontSize: '13px', fontWeight: 800, marginBottom: '8px', color: 'var(--text-secondary)' }}>City (Emirate)</label>
+                        <div style={{ position: 'relative' }}>
+                          <select 
+                            value={formData.city}
+                            onChange={e => setFormData({...formData, city: e.target.value})}
+                            style={{ width: '100%', padding: '16px', borderRadius: 'var(--r-md)', border: '2px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)', outline: 'none', fontSize: '15px', transition: 'all 0.2s', fontWeight: 500, appearance: 'none', cursor: 'pointer' }}
+                            onFocus={(e) => e.target.style.borderColor = 'var(--orange)'}
+                            onBlur={(e) => e.target.style.borderColor = 'var(--border)'}
+                          >
+                            {UAE_CITIES.map(city => <option key={city} value={city}>{city}</option>)}
+                          </select>
+                          <svg style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', opacity: 0.5 }} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                         </div>
                       </div>
-                    ))}
+                      <div className="input-group">
+                        <label style={{ display: 'block', fontSize: '13px', fontWeight: 800, marginBottom: '8px', color: 'var(--text-secondary)' }}>Full Address</label>
+                        <textarea 
+                          value={formData.address}
+                          onChange={e => setFormData({...formData, address: e.target.value})}
+                          style={{ width: '100%', padding: '16px', borderRadius: 'var(--r-md)', border: '2px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)', outline: 'none', height: '110px', resize: 'none', fontSize: '15px', transition: 'all 0.2s', fontWeight: 500 }}
+                          placeholder="Area, Street, Building, Apt number..."
+                          onFocus={(e) => e.target.style.borderColor = 'var(--orange)'}
+                          onBlur={(e) => e.target.style.borderColor = 'var(--border)'}
+                        />
+                      </div>
+                    </div>
                   </div>
 
-                  <div style={{ borderTop: '2px dashed var(--border)', paddingTop: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', color: 'var(--text-secondary)', fontWeight: 600 }}>
-                      <span>Subtotal</span>
-                      <span>{total} AED</span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', color: 'var(--text-secondary)', fontWeight: 600 }}>
-                      <span>Shipping</span>
-                      <span style={{ color: '#10b981' }}>FREE</span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '20px', fontWeight: 900, marginTop: '10px', paddingTop: '10px', borderTop: '1px solid var(--border)' }}>
-                      <span>Total</span>
-                      <span>{total} AED</span>
-                    </div>
-                  </div>
-                </div>
+                  <hr style={{ border: 'none', borderTop: '1px solid var(--border)' }} />
 
-                {/* Trust Badges */}
-                <div style={{ display: 'flex', gap: '15px', padding: '20px', background: 'var(--bg-card)', borderRadius: 'var(--r-xl)', border: '1px solid var(--border)', flexWrap: 'wrap', justifyContent: 'center' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 600 }}>
-                    <span style={{ fontSize: '18px' }}>🚚</span> Fast UAE Delivery
+                  {/* Order Summary Section */}
+                  <div>
+                    <h2 style={{ fontSize: '18px', fontWeight: 800, marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <span style={{ background: 'var(--orange)', color: '#fff', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', fontSize: '12px' }}>2</span>
+                      Order Summary
+                    </h2>
+                    <div style={{ background: 'var(--bg-raised)', padding: '24px', borderRadius: 'var(--r-md)', border: '1px solid var(--border)' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '20px' }}>
+                        {cart.map((item: any) => (
+                          <div key={item.id} style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                            <div style={{ width: '56px', height: '56px', borderRadius: 'var(--r-sm)', background: 'var(--bg-main)', display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative', border: '1px solid var(--border)' }}>
+                              <img src={item.img} alt={item.name} style={{ width: '44px', height: '44px', objectFit: 'contain' }} />
+                              <span style={{ position: 'absolute', top: '-8px', right: '-8px', background: 'var(--text-primary)', color: 'var(--bg-main)', fontSize: '11px', fontWeight: 800, width: '22px', height: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', boxShadow: '0 2px 5px rgba(0,0,0,0.2)' }}>
+                                {item.qty}
+                              </span>
+                            </div>
+                            <div style={{ flex: 1 }}>
+                              <h4 style={{ fontSize: '14px', fontWeight: 700, margin: '0 0 4px 0', lineHeight: 1.3 }}>{item.name}</h4>
+                              <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{item.catLabel}</span>
+                            </div>
+                            <div style={{ fontWeight: 800, fontSize: '15px' }}>
+                              {item.price * item.qty} AED
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div style={{ borderTop: '2px dashed var(--border)', paddingTop: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', color: 'var(--text-secondary)', fontWeight: 600 }}>
+                          <span>Subtotal</span>
+                          <span>{total} AED</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', color: 'var(--text-secondary)', fontWeight: 600 }}>
+                          <span>Shipping</span>
+                          <span style={{ color: '#10b981', fontWeight: 800 }}>FREE</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '22px', fontWeight: 900, marginTop: '10px', paddingTop: '16px', borderTop: '1px solid var(--border)' }}>
+                          <span>Total</span>
+                          <span style={{ color: 'var(--orange)' }}>{total} AED</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 600 }}>
-                    <span style={{ fontSize: '18px' }}>💯</span> 100% Authentic
+
+                  <hr style={{ border: 'none', borderTop: '1px solid var(--border)' }} />
+
+                  {/* Payment Section */}
+                  <div>
+                    <h2 style={{ fontSize: '18px', fontWeight: 800, marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <span style={{ background: 'var(--orange)', color: '#fff', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', fontSize: '12px' }}>3</span>
+                      Payment Method
+                    </h2>
+                    <div style={{ display: 'flex', gap: '16px', flexDirection: 'column' }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '16px', cursor: 'pointer', background: paymentMethod === 'cod' ? 'var(--bg-main)' : 'var(--bg-input)', padding: '20px', borderRadius: 'var(--r-md)', border: paymentMethod === 'cod' ? '2px solid var(--orange)' : '2px solid var(--border)', transition: 'all 0.2s' }}>
+                        <div style={{ width: '22px', height: '22px', borderRadius: '50%', border: paymentMethod === 'cod' ? '6px solid var(--orange)' : '2px solid var(--text-muted)', background: paymentMethod === 'cod' ? '#fff' : 'transparent', transition: 'all 0.2s' }}></div>
+                        <input type="radio" name="payment" value="cod" checked={paymentMethod === 'cod'} onChange={() => setPaymentMethod('cod')} style={{ display: 'none' }} />
+                        <div>
+                          <div style={{ fontWeight: 800, fontSize: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>💵 Cash on Delivery</div>
+                          <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px', fontWeight: 500 }}>Pay with cash when your order arrives.</div>
+                        </div>
+                      </label>
+                      
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '16px', cursor: 'pointer', background: paymentMethod === 'online' ? 'var(--bg-main)' : 'var(--bg-input)', padding: '20px', borderRadius: 'var(--r-md)', border: paymentMethod === 'online' ? '2px solid var(--orange)' : '2px solid var(--border)', transition: 'all 0.2s' }}>
+                        <div style={{ width: '22px', height: '22px', borderRadius: '50%', border: paymentMethod === 'online' ? '6px solid var(--orange)' : '2px solid var(--text-muted)', background: paymentMethod === 'online' ? '#fff' : 'transparent', transition: 'all 0.2s' }}></div>
+                        <input type="radio" name="payment" value="online" checked={paymentMethod === 'online'} onChange={() => setPaymentMethod('online')} style={{ display: 'none' }} />
+                        <div>
+                          <div style={{ fontWeight: 800, fontSize: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>💳 Pay Online Securely</div>
+                          <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px', fontWeight: 500 }}>Pay via Ziina (Apple Pay, Card).</div>
+                        </div>
+                      </label>
+                    </div>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 600 }}>
-                    <span style={{ fontSize: '18px' }}>💵</span> Cash on Delivery
+                  
+                  {/* Submit Button */}
+                  <div style={{ marginTop: '10px' }}>
+                    <button 
+                      type="submit" 
+                      disabled={loading}
+                      style={{ 
+                        width: '100%', background: 'var(--orange)', color: '#fff', fontWeight: 900, padding: '20px', 
+                        borderRadius: 'var(--r-md)', fontSize: '18px', display: 'flex', justifyContent: 'center', 
+                        alignItems: 'center', gap: '12px', opacity: loading ? 0.7 : 1, cursor: loading ? 'not-allowed' : 'pointer',
+                        boxShadow: '0 12px 24px rgba(255, 94, 0, 0.25)', transition: 'all 0.3s ease',
+                        border: 'none', textTransform: 'uppercase', letterSpacing: '0.02em'
+                      }}
+                    >
+                      {loading ? (
+                        <>
+                          <svg className="spinner" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                          Processing...
+                        </>
+                      ) : paymentMethod === 'cod' ? (
+                        <>Place Order — {total} AED</>
+                      ) : (
+                        <>Proceed to Pay — {total} AED</>
+                      )}
+                    </button>
+                    <p style={{ textAlign: 'center', fontSize: '13px', color: 'var(--text-secondary)', marginTop: '16px', fontWeight: 500 }}>
+                      By placing this order, you agree to our <Link href="/terms" style={{ color: 'var(--orange)', textDecoration: 'underline' }}>Terms of Service</Link> and <Link href="/privacy" style={{ color: 'var(--orange)', textDecoration: 'underline' }}>Privacy Policy</Link>.
+                    </p>
                   </div>
-                </div>
+
+                </form>
               </div>
-
             </div>
           )}
         </div>
       </div>
       <Footer />
+      
+      <style dangerouslySetInnerHTML={{__html: `
+        .spinner { animation: spin 1s linear infinite; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+      `}} />
     </>
   );
 }
