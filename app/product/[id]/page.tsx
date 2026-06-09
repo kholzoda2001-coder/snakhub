@@ -98,60 +98,69 @@ export default function ProductDetailPage() {
                 In Stock & Ready to Ship
               </div>
 
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginTop: '16px', background: 'var(--bg-raised)', padding: '20px', borderRadius: 'var(--r-md)' }}>
+              <div style={{ display: 'flex', gap: '8px', marginTop: '20px', alignItems: 'stretch', height: '54px' }}>
                 {/* Qty Selector */}
-                <div style={{ display: 'flex', alignItems: 'center', background: 'var(--bg-input)', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', padding: '4px', flexShrink: 0 }}>
-                  <button onClick={() => setQty(Math.max(1, qty - 1))} style={{ width: '40px', height: '40px', border: 'none', background: 'transparent', color: 'var(--text-primary)', fontSize: '20px', cursor: 'pointer' }}>−</button>
-                  <span style={{ width: '30px', textAlign: 'center', fontWeight: 800 }}>{qty}</span>
-                  <button onClick={() => setQty(qty + 1)} style={{ width: '40px', height: '40px', border: 'none', background: 'transparent', color: 'var(--text-primary)', fontSize: '20px', cursor: 'pointer' }}>+</button>
+                <div style={{ display: 'flex', alignItems: 'center', background: 'var(--bg-raised)', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', padding: '0 4px', flexShrink: 0, width: '100px', justifyContent: 'space-between', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)' }}>
+                  <button onClick={() => setQty(Math.max(1, qty - 1))} style={{ width: '30px', height: '100%', border: 'none', background: 'transparent', color: 'var(--text-secondary)', fontSize: '20px', cursor: 'pointer', transition: 'color 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onMouseOver={e=>e.currentTarget.style.color='var(--orange)'} onMouseOut={e=>e.currentTarget.style.color='var(--text-secondary)'}>−</button>
+                  <span style={{ fontWeight: 900, fontSize: '15px', color: 'var(--text-primary)' }}>{qty}</span>
+                  <button onClick={() => setQty(qty + 1)} style={{ width: '30px', height: '100%', border: 'none', background: 'transparent', color: 'var(--text-secondary)', fontSize: '20px', cursor: 'pointer', transition: 'color 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onMouseOver={e=>e.currentTarget.style.color='var(--orange)'} onMouseOut={e=>e.currentTarget.style.color='var(--text-secondary)'}>+</button>
                 </div>
 
-                <div style={{ display: 'flex', gap: '12px', flex: 1, minWidth: '200px' }}>
-                  {/* Add to Cart Button */}
-                  <button 
-                    onClick={() => handleAddToCart(false)}
-                    style={{ 
-                      flex: 1, 
-                      background: isAdding ? '#10b981' : 'var(--bg-input)', 
-                      color: isAdding ? '#fff' : 'var(--text-primary)', 
-                      border: isAdding ? '2px solid #10b981' : '2px solid var(--orange)', 
-                      borderRadius: 'var(--r-md)', 
-                      fontSize: '15px', 
-                      fontWeight: 800, 
-                      cursor: 'pointer', 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      justifyContent: 'center', 
-                      gap: '8px',
-                      transition: 'all 0.2s',
-                    }}
-                  >
-                    {isAdding ? '✓ Added' : '🛒 Add to Cart'}
-                  </button>
+                {/* Add to Cart Button */}
+                <button 
+                  onClick={() => handleAddToCart(false)}
+                  style={{ 
+                    flex: 1, 
+                    background: isAdding ? '#10b981' : 'var(--bg-main)', 
+                    color: isAdding ? '#fff' : 'var(--text-primary)', 
+                    border: isAdding ? '2px solid #10b981' : '2px solid var(--border)', 
+                    borderRadius: 'var(--r-md)', 
+                    fontSize: '14px', 
+                    fontWeight: 800, 
+                    cursor: 'pointer', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    gap: '6px',
+                    transition: 'all 0.3s ease',
+                    boxShadow: isAdding ? '0 8px 16px rgba(16,185,129,0.2)' : '0 4px 6px rgba(0,0,0,0.02)',
+                    padding: '0 4px',
+                    whiteSpace: 'nowrap'
+                  }}
+                  onMouseOver={e => { if(!isAdding) e.currentTarget.style.borderColor = 'var(--orange)'; }}
+                  onMouseOut={e => { if(!isAdding) e.currentTarget.style.borderColor = 'var(--border)'; }}
+                >
+                  {isAdding ? '✓ Added' : '🛒 Cart'}
+                </button>
 
-                  {/* Buy Now Button */}
-                  <button 
-                    onClick={() => handleAddToCart(true)}
-                    style={{ 
-                      flex: 1, 
-                      background: 'var(--orange)', 
-                      color: '#fff', 
-                      border: 'none', 
-                      borderRadius: 'var(--r-md)', 
-                      fontSize: '15px', 
-                      fontWeight: 800, 
-                      cursor: 'pointer', 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      justifyContent: 'center', 
-                      gap: '8px',
-                      transition: 'all 0.2s',
-                      boxShadow: '0 10px 20px rgba(255, 94, 0, 0.3)'
-                    }}
-                  >
-                    ⚡ Buy Now
-                  </button>
-                </div>
+                {/* Buy Now Button */}
+                <button 
+                  onClick={() => handleAddToCart(true)}
+                  style={{ 
+                    flex: 1.5, 
+                    background: 'linear-gradient(135deg, var(--orange) 0%, #ff5e00 100%)', 
+                    color: '#fff', 
+                    border: 'none', 
+                    borderRadius: 'var(--r-md)', 
+                    fontSize: '14px', 
+                    fontWeight: 800, 
+                    cursor: 'pointer', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    gap: '6px',
+                    transition: 'all 0.3s ease',
+                    boxShadow: '0 8px 20px rgba(255, 94, 0, 0.3)',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.02em',
+                    padding: '0 4px',
+                    whiteSpace: 'nowrap'
+                  }}
+                  onMouseOver={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+                  onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}
+                >
+                  ⚡ Buy Now
+                </button>
               </div>
 
               {/* Trust Badges */}
