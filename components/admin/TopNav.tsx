@@ -1,11 +1,16 @@
 'use client';
 import React from 'react';
 
-export default function TopNav() {
+export default function TopNav({ onToggleSidebar }: { onToggleSidebar: () => void }) {
   return (
     <header className="admin-topnav">
-      <div className="admin-search">
-        <input type="text" placeholder="Search orders, products..." />
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <button className="mobile-menu-btn" onClick={onToggleSidebar}>
+          ☰
+        </button>
+        <div className="admin-search">
+          <input type="text" placeholder="Search orders, products..." />
+        </div>
       </div>
       <div className="admin-profile">
         <span>Admin User</span>

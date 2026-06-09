@@ -180,6 +180,7 @@
 .admin-table {
   width: 100%;
   border-collapse: collapse;
+  white-space: nowrap;
 }
 
 .admin-table th, .admin-table td {
@@ -251,3 +252,82 @@
 .status-badge.pending { background: rgba(255,165,0,0.2); color: orange; }
 .status-badge.shipped { background: rgba(168,255,62,0.2); color: var(--admin-green); }
 .status-badge.delivered { background: rgba(255,255,255,0.1); color: #fff; }
+
+/* Responsive Grid classes */
+.grid-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.full-width {
+  grid-column: 1 / -1;
+}
+
+/* Mobile Toggle */
+.mobile-menu-btn {
+  display: none;
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 95;
+  backdrop-filter: blur(2px);
+}
+
+/* Media Queries for Mobile Responsiveness */
+@media (max-width: 768px) {
+  .mobile-menu-btn {
+    display: block;
+  }
+  
+  .sidebar-overlay {
+    display: block;
+  }
+
+  .admin-sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+  
+  .admin-sidebar.open {
+    transform: translateX(0);
+  }
+
+  .admin-main {
+    margin-left: 0;
+  }
+
+  .admin-topnav {
+    padding: 0 16px;
+  }
+  
+  .admin-search {
+    display: none; /* Hide search bar on mobile to save space */
+  }
+
+  .admin-content {
+    padding: 16px;
+  }
+
+  .grid-2col {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-table-wrap {
+    overflow-x: auto;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+}

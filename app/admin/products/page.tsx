@@ -115,7 +115,7 @@ export default function AdminProducts() {
       {isAdding && (
         <div style={{ background: 'var(--bg-card)', padding: '20px', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', marginBottom: '20px' }}>
           <h2 style={{ fontSize: '18px', marginBottom: '16px' }}>{editingId ? 'Edit Product' : 'Add New Product'}</h2>
-          <form onSubmit={handleSave} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <form onSubmit={handleSave} className="grid-2col">
             <div>
               <label>Name</label>
               <input type="text" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} style={inputStyle} />
@@ -148,11 +148,11 @@ export default function AdminProducts() {
               <label>Tag Label (e.g. HOT)</label>
               <input type="text" value={formData.tagLabel} onChange={e => setFormData({...formData, tagLabel: e.target.value})} style={inputStyle} />
             </div>
-            <div style={{ gridColumn: '1 / -1' }}>
+            <div className="full-width">
               <label>Description</label>
               <textarea value={formData.desc} onChange={e => setFormData({...formData, desc: e.target.value})} style={{ ...inputStyle, height: '80px', resize: 'none' }} />
             </div>
-            <div style={{ gridColumn: '1 / -1', display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+            <div className="full-width" style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
               <button type="button" onClick={() => setIsAdding(false)} style={{ padding: '10px 20px', borderRadius: 'var(--r-md)', cursor: 'pointer', border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-primary)' }}>Cancel</button>
               <button type="submit" style={{ padding: '10px 20px', borderRadius: 'var(--r-md)', cursor: 'pointer', border: 'none', background: 'var(--orange)', color: '#fff', fontWeight: 800 }}>Save Product</button>
             </div>
