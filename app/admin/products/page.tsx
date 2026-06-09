@@ -107,13 +107,13 @@ export default function AdminProducts() {
       <div className="page-header">
         <h1 className="page-title">Products Management</h1>
         <div style={{ display: 'flex', gap: '10px' }}>
-          <button className="btn-secondary" onClick={loadDefaultProducts} style={{ padding: '10px 16px', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', background: 'var(--bg-card)', cursor: 'pointer', fontWeight: 600 }}>Load Defaults</button>
+          <button className="btn-secondary" onClick={loadDefaultProducts} style={{ padding: '10px 16px', borderRadius: 'var(--r-md)', border: '1px solid var(--admin-border)', background: 'var(--admin-card)', color: 'var(--admin-text)', cursor: 'pointer', fontWeight: 600 }}>Load Defaults</button>
           <button className="btn-primary" onClick={() => { setIsAdding(true); setEditingId(null); setFormData({ name: '', cat: '', catLabel: '', price: 0, oldPrice: 0, tag: '', tagLabel: '', img: '', desc: '' }); }}>+ Add Product</button>
         </div>
       </div>
 
       {isAdding && (
-        <div style={{ background: 'var(--bg-card)', padding: '20px', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', marginBottom: '20px' }}>
+        <div style={{ background: 'var(--admin-card)', padding: '20px', borderRadius: 'var(--r-md)', border: '1px solid var(--admin-border)', marginBottom: '20px' }}>
           <h2 style={{ fontSize: '18px', marginBottom: '16px' }}>{editingId ? 'Edit Product' : 'Add New Product'}</h2>
           <form onSubmit={handleSave} className="grid-2col">
             <div>
@@ -153,8 +153,8 @@ export default function AdminProducts() {
               <textarea value={formData.desc} onChange={e => setFormData({...formData, desc: e.target.value})} style={{ ...inputStyle, height: '80px', resize: 'none' }} />
             </div>
             <div className="full-width" style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-              <button type="button" onClick={() => setIsAdding(false)} style={{ padding: '10px 20px', borderRadius: 'var(--r-md)', cursor: 'pointer', border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-primary)' }}>Cancel</button>
-              <button type="submit" style={{ padding: '10px 20px', borderRadius: 'var(--r-md)', cursor: 'pointer', border: 'none', background: 'var(--orange)', color: '#fff', fontWeight: 800 }}>Save Product</button>
+              <button type="button" onClick={() => setIsAdding(false)} style={{ padding: '10px 20px', borderRadius: 'var(--r-md)', cursor: 'pointer', border: '1px solid var(--admin-border)', background: 'transparent', color: 'var(--admin-text)' }}>Cancel</button>
+              <button type="submit" style={{ padding: '10px 20px', borderRadius: 'var(--r-md)', cursor: 'pointer', border: 'none', background: 'var(--admin-primary)', color: '#fff', fontWeight: 800 }}>Save Product</button>
             </div>
           </form>
         </div>
@@ -181,12 +181,12 @@ export default function AdminProducts() {
                   <td><img src={p.img} alt={p.name} style={{ width: '40px', height: '40px', objectFit: 'contain' }} /></td>
                   <td style={{ fontWeight: 700 }}>{p.name}</td>
                   <td>{p.catLabel}</td>
-                  <td>{p.price} AED {p.oldPrice && <span style={{ textDecoration: 'line-through', color: 'var(--text-muted)', fontSize: '12px' }}>{p.oldPrice}</span>}</td>
+                  <td>{p.price} AED {p.oldPrice && <span style={{ textDecoration: 'line-through', color: 'var(--admin-muted)', fontSize: '12px' }}>{p.oldPrice}</span>}</td>
                   <td>{p.stock > 0 ? p.stock : 'Unlimited'}</td>
                   <td>
                     <div style={{ display: 'flex', gap: '10px' }}>
                       <button onClick={() => editProduct(p)} style={{ cursor: 'pointer', background: 'transparent', border: 'none', color: '#3b82f6', fontWeight: 600 }}>Edit</button>
-                      <button onClick={() => handleDelete(p.id)} style={{ cursor: 'pointer', background: 'transparent', border: 'none', color: 'var(--danger)', fontWeight: 600 }}>Delete</button>
+                      <button onClick={() => handleDelete(p.id)} style={{ cursor: 'pointer', background: 'transparent', border: 'none', color: 'var(--admin-danger)', fontWeight: 600 }}>Delete</button>
                     </div>
                   </td>
                 </tr>
@@ -205,7 +205,7 @@ const inputStyle = {
   padding: '10px',
   marginTop: '4px',
   borderRadius: 'var(--r-sm)',
-  border: '1px solid var(--border)',
-  background: 'var(--bg-input)',
-  color: 'var(--text-primary)'
+  border: '1px solid var(--admin-border)',
+  background: 'var(--admin-raised)',
+  color: 'var(--admin-text)'
 };

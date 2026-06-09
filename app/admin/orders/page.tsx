@@ -69,7 +69,7 @@ export default function AdminOrders() {
                   <td>{order.address}</td>
                   <td>
                     <details>
-                      <summary style={{ cursor: 'pointer', color: 'var(--orange)' }}>View Items</summary>
+                      <summary style={{ cursor: 'pointer', color: 'var(--admin-primary)' }}>View Items</summary>
                       <ul style={{ paddingLeft: '20px', marginTop: '10px', fontSize: '13px' }}>
                         {order.items.map((item: any, i: number) => (
                           <li key={i}>{item.qty}x {item.name} ({item.price} AED)</li>
@@ -83,7 +83,7 @@ export default function AdminOrders() {
                     <select 
                       value={order.status} 
                       onChange={(e) => updateStatus(order.id, e.target.value)}
-                      style={{ padding: '6px', borderRadius: '4px', border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)' }}
+                      style={{ padding: '6px', borderRadius: '4px', border: '1px solid var(--admin-border)', background: 'var(--admin-raised)', color: 'var(--admin-text)' }}
                     >
                       <option value="Pending">Pending</option>
                       <option value="Shipped">Shipped</option>
