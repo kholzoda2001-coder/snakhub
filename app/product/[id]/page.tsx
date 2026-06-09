@@ -50,13 +50,13 @@ export default function ProductDetailPage() {
 
   const inWL = wishlist.has(product.id);
 
-  const handleAddToCart = () => {
-    setIsAdding(true);
+  const handleAddToCart = (openCart: boolean) => {
+    if (!openCart) setIsAdding(true);
     // Add product to cart with the selected quantity
     for (let i = 0; i < qty; i++) {
-      addToCart(product);
+      addToCart(product, openCart);
     }
-    setTimeout(() => setIsAdding(false), 500);
+    if (!openCart) setTimeout(() => setIsAdding(false), 500);
   };
 
   return (
@@ -93,45 +93,65 @@ export default function ProductDetailPage() {
                 </div>
               </div>
 
-              <div style={{ fontSize: '15px', color: 'var(--text-secondary)', lineHeight: 1.6, background: 'var(--bg-raised)', padding: '20px', borderRadius: 'var(--r-md)' }}>
-                {product.desc || "Fuel your day with this premium product. Packed with flavor and energy to keep you going."}
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#10b981', fontWeight: 800, fontSize: '14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#10b981', fontWeight: 800, fontSize: '14px', marginTop: '4px' }}>
                 <span style={{ display: 'inline-block', width: '8px', height: '8px', background: '#10b981', borderRadius: '50%', boxShadow: '0 0 8px #10b981' }}></span>
                 In Stock & Ready to Ship
               </div>
 
-              <div style={{ display: 'flex', gap: '16px', marginTop: '10px' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginTop: '16px', background: 'var(--bg-raised)', padding: '20px', borderRadius: 'var(--r-md)' }}>
                 {/* Qty Selector */}
-                <div style={{ display: 'flex', alignItems: 'center', background: 'var(--bg-input)', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', padding: '4px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', background: 'var(--bg-input)', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', padding: '4px', flexShrink: 0 }}>
                   <button onClick={() => setQty(Math.max(1, qty - 1))} style={{ width: '40px', height: '40px', border: 'none', background: 'transparent', color: 'var(--text-primary)', fontSize: '20px', cursor: 'pointer' }}>−</button>
                   <span style={{ width: '30px', textAlign: 'center', fontWeight: 800 }}>{qty}</span>
                   <button onClick={() => setQty(qty + 1)} style={{ width: '40px', height: '40px', border: 'none', background: 'transparent', color: 'var(--text-primary)', fontSize: '20px', cursor: 'pointer' }}>+</button>
                 </div>
 
-                {/* Add to Cart Button */}
-                <button 
-                  onClick={handleAddToCart}
-                  style={{ 
-                    flex: 1, 
-                    background: isAdding ? '#10b981' : 'var(--orange)', 
-                    color: '#fff', 
-                    border: 'none', 
-                    borderRadius: 'var(--r-md)', 
-                    fontSize: '16px', 
-                    fontWeight: 800, 
-                    cursor: 'pointer', 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center', 
-                    gap: '10px',
-                    transition: 'all 0.2s',
-                    boxShadow: isAdding ? '0 10px 20px rgba(16, 185, 129, 0.3)' : '0 10px 20px rgba(255, 94, 0, 0.3)'
-                  }}
-                >
-                  {isAdding ? '✓ Added' : '🛒 Add to Cart'}
-                </button>
+                <div style={{ display: 'flex', gap: '12px', flex: 1, minWidth: '200px' }}>
+                  {/* Add to Cart Button */}
+                  <button 
+                    onClick={() => handleAddToCart(false)}
+                    style={{ 
+                      flex: 1, 
+                      background: isAdding ? '#10b981' : 'var(--bg-input)', 
+                      color: isAdding ? '#fff' : 'var(--text-primary)', 
+                      border: isAdding ? '2px solid #10b981' : '2px solid var(--orange)', 
+                      borderRadius: 'var(--r-md)', 
+                      fontSize: '15px', 
+                      fontWeight: 800, 
+                      cursor: 'pointer', 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center', 
+                      gap: '8px',
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    {isAdding ? '✓ Added' : '🛒 Add to Cart'}
+                  </button>
+
+                  {/* Buy Now Button */}
+                  <button 
+                    onClick={() => handleAddToCart(true)}
+                    style={{ 
+                      flex: 1, 
+                      background: 'var(--orange)', 
+                      color: '#fff', 
+                      border: 'none', 
+                      borderRadius: 'var(--r-md)', 
+                      fontSize: '15px', 
+                      fontWeight: 800, 
+                      cursor: 'pointer', 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center', 
+                      gap: '8px',
+                      transition: 'all 0.2s',
+                      boxShadow: '0 10px 20px rgba(255, 94, 0, 0.3)'
+                    }}
+                  >
+                    ⚡ Buy Now
+                  </button>
+                </div>
               </div>
 
               {/* Trust Badges */}

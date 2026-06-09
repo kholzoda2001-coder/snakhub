@@ -16,7 +16,7 @@ type CartContextType = {
   wishlist: Set<number>;
   isCartOpen: boolean;
   isMenuOpen: boolean;
-  addToCart: (product: any) => void;
+  addToCart: (product: any, openCart?: boolean) => void;
   removeFromCart: (id: number) => void;
   updateQty: (id: number, delta: number) => void;
   clearCart: () => void;
@@ -46,7 +46,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('fuel_cart', JSON.stringify(cart));
   }, [cart]);
 
-  const addToCart = (product: any) => {
+  const addToCart = (product: any, openCart: boolean = true) => {
     setCart(prev => {
       const existing = prev.find(i => i.id === product.id);
       if (existing) {
@@ -54,7 +54,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       }
       return [...prev, { ...product, qty: 1 }];
     });
-    setIsCartOpen(true); // Auto open cart
+    if (openCart) {
+      setIsCartOpen(true);
+    }
   };
 
   const removeFromCart = (id: number) => setCart(prev => prev.filter(i => i.id !== id));
