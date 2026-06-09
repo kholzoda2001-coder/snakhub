@@ -162,9 +162,27 @@ export default function ProductDetailPage() {
                   ⚡ Buy Now
                 </button>
               </div>
+              {/* Wholesale Contact */}
+              <div style={{ marginTop: '24px', background: 'rgba(37, 211, 102, 0.05)', border: '1px solid rgba(37, 211, 102, 0.2)', padding: '16px', borderRadius: 'var(--r-md)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', transition: 'all 0.3s' }}>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <span style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-primary)' }}>Need Wholesale Prices?</span>
+                  <span style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '2px' }}>Get special rates for bulk orders</span>
+                </div>
+                <a 
+                  href={`https://wa.me/971561144518?text=Hello,%20I%20would%20like%20to%20know%20the%20wholesale%20price%20for%20${encodeURIComponent(product.name)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#25D366', color: '#fff', padding: '10px 16px', borderRadius: '20px', textDecoration: 'none', fontWeight: 800, fontSize: '13px', boxShadow: '0 4px 10px rgba(37, 211, 102, 0.3)', transition: 'all 0.2s' }}
+                  onMouseOver={e => e.currentTarget.style.transform = 'scale(1.05)'}
+                  onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                  WhatsApp
+                </a>
+              </div>
 
               {/* Trust Badges */}
-              <div style={{ display: 'flex', gap: '10px', marginTop: '10px', paddingTop: '20px', borderTop: '1px solid var(--border)', overflowX: 'auto', whiteSpace: 'nowrap', paddingBottom: '10px', scrollbarWidth: 'none' }}>
+              <div style={{ display: 'flex', gap: '10px', marginTop: '16px', paddingTop: '20px', borderTop: '1px solid var(--border)', overflowX: 'auto', whiteSpace: 'nowrap', paddingBottom: '10px', scrollbarWidth: 'none' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 600, background: 'var(--bg-raised)', padding: '8px 12px', borderRadius: '20px' }}>
                   <span style={{ fontSize: '16px' }}>🚚</span> Fast UAE Delivery
                 </div>
