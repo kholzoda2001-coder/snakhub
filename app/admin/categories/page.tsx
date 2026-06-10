@@ -51,6 +51,50 @@ export default function AdminCategories() {
     }
   };
 
+  const handleMoveUp = async (index: number) => {
+    if (index === 0) return;
+    const ordered = categories.map((c, i) => ({ ...c, order: i }));
+    const tempOrder = ordered[index].order;
+    ordered[index].order = ordered[index - 1].order;
+    ordered[index - 1].order = tempOrder;
+    
+    const itemsToUpdate = ordered.map(c => ({ id: c.id, order: c.order }));
+    setCategories([...ordered].sort((a, b) => a.order - b.order));
+    
+    try {
+      await fetch('/api/categories/reorder', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: itemsToUpdate })
+      });
+    } catch (err) {
+      alert('Failed to reorder');
+      fetchCategories();
+    }
+  };
+
+  const handleMoveDown = async (index: number) => {
+    if (index === categories.length - 1) return;
+    const ordered = categories.map((c, i) => ({ ...c, order: i }));
+    const tempOrder = ordered[index].order;
+    ordered[index].order = ordered[index + 1].order;
+    ordered[index + 1].order = tempOrder;
+    
+    const itemsToUpdate = ordered.map(c => ({ id: c.id, order: c.order }));
+    setCategories([...ordered].sort((a, b) => a.order - b.order));
+    
+    try {
+      await fetch('/api/categories/reorder', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: itemsToUpdate })
+      });
+    } catch (err) {
+      alert('Failed to reorder');
+      fetchCategories();
+    }
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -150,20 +194,27 @@ export default function AdminCategories() {
               <th>Name</th>
               <th>Slug</th>
               <th>Image</th>
+              <th>Order</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {categories.length === 0 ? (
-              <tr><td colSpan={6} style={{ textAlign: 'center' }}>No categories found.</td></tr>
+              <tr><td colSpan={7} style={{ textAlign: 'center' }}>No categories found.</td></tr>
             ) : (
-              categories.map(c => (
+              categories.map((c, index) => (
                 <tr key={c.id}>
                   <td>{c.id}</td>
                   <td style={{ fontSize: '20px' }}>{c.icon}</td>
                   <td style={{ fontWeight: 700 }}>{c.name}</td>
                   <td>{c.slug}</td>
                   <td>{c.img && <img src={c.img} alt={c.name} style={{ width: '30px', height: '30px', objectFit: 'cover', borderRadius: '4px' }} />}</td>
+                  <td>
+                    <div style={{ display: 'flex', gap: '5px' }}>
+                      <button onClick={() => handleMoveUp(index)} disabled={index === 0} style={{ cursor: index === 0 ? 'not-allowed' : 'pointer', padding: '2px 6px', opacity: index === 0 ? 0.3 : 1 }}>⬆️</button>
+                      <button onClick={() => handleMoveDown(index)} disabled={index === categories.length - 1} style={{ cursor: index === categories.length - 1 ? 'not-allowed' : 'pointer', padding: '2px 6px', opacity: index === categories.length - 1 ? 0.3 : 1 }}>⬇️</button>
+                    </div>
+                  </td>
                   <td>
                     <div style={{ display: 'flex', gap: '10px' }}>
                       <button onClick={() => editCategory(c)} style={{ cursor: 'pointer', background: 'transparent', border: 'none', color: '#3b82f6', fontWeight: 600 }}>Edit</button>

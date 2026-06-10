@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
   try {
     const categories = await prisma.category.findMany({
-      orderBy: { id: 'asc' }
+      orderBy: { order: 'asc' }
     });
     return NextResponse.json(categories);
   } catch (error) {

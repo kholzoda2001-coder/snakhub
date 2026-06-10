@@ -9,37 +9,62 @@ import { useCart } from '../context/CartContext';
 
 export default function Home() {
   const [productsData, setProductsData] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
   const { addToCart, wishlist, toggleWishlist } = useCart();
 
   useEffect(() => {
-    fetch('/api/products')
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data) && data.length > 0) {
-          setProductsData(data);
-        } else {
-          import('../data/products').then(mod => setProductsData(mod.products));
-        }
-      })
-      .catch(() => {
+    Promise.all([
+      fetch('/api/products').then(res => res.json()),
+      fetch('/api/categories').then(res => res.json())
+    ])
+    .then(([prodData, catData]) => {
+      if (Array.isArray(prodData) && prodData.length > 0) {
+        setProductsData(prodData);
+      } else {
         import('../data/products').then(mod => setProductsData(mod.products));
-      });
+      }
+
+      if (Array.isArray(catData)) {
+        setCategories(catData);
+      }
+    })
+    .catch(() => {
+      import('../data/products').then(mod => setProductsData(mod.products));
+    });
   }, []);
 
-  // Group products by category
-  const categoriesMap = new Map();
+  // Group products by ordered categories
+  const productsByCat: Record<string, any[]> = {};
   productsData.forEach(p => {
-    if (!categoriesMap.has(p.cat)) {
-      categoriesMap.set(p.cat, { label: p.catLabel, products: [] });
-    }
-    categoriesMap.get(p.cat).products.push(p);
+    if (!productsByCat[p.cat]) productsByCat[p.cat] = [];
+    productsByCat[p.cat].push(p);
   });
   
-  const categoryGroups = Array.from(categoriesMap.entries()).map(([slug, data]) => ({
-    slug,
-    label: data.label || 'Other',
-    products: data.products
-  }));
+  const categoryGroups: any[] = [];
+  
+  // 1. Ordered categories from DB
+  categories.forEach(c => {
+    if (productsByCat[c.slug]) {
+      categoryGroups.push({
+        slug: c.slug,
+        label: c.name,
+        products: productsByCat[c.slug]
+      });
+      delete productsByCat[c.slug];
+    }
+  });
+
+  // 2. Remaining categories
+  Object.keys(productsByCat).forEach(slug => {
+    const products = productsByCat[slug];
+    if (products.length > 0) {
+      categoryGroups.push({
+        slug,
+        label: products[0].catLabel || slug,
+        products
+      });
+    }
+  });
 
   return (
     <>
