@@ -70,7 +70,7 @@ model Banner {
 }
 
 model Settings {
-  id        Int      @id @default(1)
+  id        Int      @id @default(autoincrement())
   key       String   @unique
   value     String   @db.LongText
   updatedAt DateTime @updatedAt
