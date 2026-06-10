@@ -55,7 +55,7 @@ export default function AdminProducts() {
         });
       }
       alert('Default products loaded successfully!');
-      fetchProducts();
+      fetchData();
     } catch (err) {
       alert('Failed to load defaults.');
       setLoading(false);
