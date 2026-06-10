@@ -1,6 +1,7 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import { products as defaultProducts } from '../../../data/products';
+import { uploadImage } from '../../../lib/uploadImage';
 
 export default function AdminProducts() {
   const [products, setProducts] = useState<any[]>([]);
@@ -11,6 +12,22 @@ export default function AdminProducts() {
     name: '', cat: '', catLabel: '', price: 0, oldPrice: 0, tag: '', tagLabel: '', img: '', desc: ''
   });
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [uploadingImg, setUploadingImg] = useState(false);
+  const [imgMethod, setImgMethod] = useState<'url' | 'upload'>('url');
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files?.[0]) return;
+    setUploadingImg(true);
+    try {
+      const url = await uploadImage(e.target.files[0]);
+      setFormData(prev => ({ ...prev, img: url }));
+      alert('Image uploaded successfully!');
+    } catch (err: any) {
+      alert(err.message || 'Upload failed');
+    } finally {
+      setUploadingImg(false);
+    }
+  };
 
   const fetchData = async () => {
     try {
@@ -126,9 +143,23 @@ export default function AdminProducts() {
               <label>Name</label>
               <input type="text" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} style={inputStyle} />
             </div>
-            <div>
-              <label>Image URL</label>
-              <input type="text" required value={formData.img} onChange={e => setFormData({...formData, img: e.target.value})} style={inputStyle} />
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <label>Image</label>
+                <div style={{ display: 'flex', gap: '5px' }}>
+                  <button type="button" onClick={() => setImgMethod('url')} style={{ padding: '2px 8px', fontSize: '12px', background: imgMethod === 'url' ? 'var(--admin-primary)' : 'transparent', color: imgMethod === 'url' ? '#fff' : 'var(--admin-text)', border: '1px solid var(--admin-border)', borderRadius: 'var(--r-sm)', cursor: 'pointer' }}>URL</button>
+                  <button type="button" onClick={() => setImgMethod('upload')} style={{ padding: '2px 8px', fontSize: '12px', background: imgMethod === 'upload' ? 'var(--admin-primary)' : 'transparent', color: imgMethod === 'upload' ? '#fff' : 'var(--admin-text)', border: '1px solid var(--admin-border)', borderRadius: 'var(--r-sm)', cursor: 'pointer' }}>Upload</button>
+                </div>
+              </div>
+              {imgMethod === 'url' ? (
+                <input type="text" required value={formData.img} onChange={e => setFormData({...formData, img: e.target.value})} style={inputStyle} placeholder="https://..." />
+              ) : (
+                <div style={{ marginTop: '4px' }}>
+                  <input type="file" accept="image/*" onChange={handleImageUpload} style={{ ...inputStyle, padding: '7px' }} disabled={uploadingImg} />
+                  {uploadingImg && <span style={{ fontSize: '12px', color: 'var(--admin-primary)' }}>Uploading...</span>}
+                  {formData.img && imgMethod === 'upload' && !uploadingImg && <img src={formData.img} alt="Preview" style={{ width: '40px', height: '40px', objectFit: 'cover', marginTop: '5px', borderRadius: '4px' }} />}
+                </div>
+              )}
             </div>
             <div className="full-width">
               <label>Category</label>
