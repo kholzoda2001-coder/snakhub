@@ -4,6 +4,7 @@ import { products as defaultProducts } from '../../../data/products';
 
 export default function AdminProducts() {
   const [products, setProducts] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
   const [formData, setFormData] = useState({
@@ -11,11 +12,16 @@ export default function AdminProducts() {
   });
   const [editingId, setEditingId] = useState<number | null>(null);
 
-  const fetchProducts = async () => {
+  const fetchData = async () => {
     try {
-      const res = await fetch('/api/products');
-      const data = await res.json();
-      setProducts(data);
+      const [prodRes, catRes] = await Promise.all([
+        fetch('/api/products'),
+        fetch('/api/categories')
+      ]);
+      const prodData = await prodRes.json();
+      const catData = await catRes.json();
+      setProducts(prodData);
+      setCategories(catData);
     } catch (err) {
       console.error(err);
     } finally {
@@ -24,7 +30,7 @@ export default function AdminProducts() {
   };
 
   useEffect(() => {
-    fetchProducts();
+    fetchData();
   }, []);
 
   const loadDefaultProducts = async () => {
@@ -60,7 +66,7 @@ export default function AdminProducts() {
     if (!confirm('Are you sure you want to delete this product?')) return;
     try {
       await fetch(`/api/products/${id}`, { method: 'DELETE' });
-      fetchProducts();
+      fetchData();
     } catch (err) {
       alert('Failed to delete product');
     }
@@ -85,7 +91,7 @@ export default function AdminProducts() {
       setIsAdding(false);
       setEditingId(null);
       setFormData({ name: '', cat: '', catLabel: '', price: 0, oldPrice: 0, tag: '', tagLabel: '', img: '', desc: '' });
-      fetchProducts();
+      fetchData();
     } catch (err) {
       alert('Failed to save product');
     }
@@ -124,13 +130,26 @@ export default function AdminProducts() {
               <label>Image URL</label>
               <input type="text" required value={formData.img} onChange={e => setFormData({...formData, img: e.target.value})} style={inputStyle} />
             </div>
-            <div>
-              <label>Category ID (e.g. chips)</label>
-              <input type="text" required value={formData.cat} onChange={e => setFormData({...formData, cat: e.target.value})} style={inputStyle} />
-            </div>
-            <div>
-              <label>Category Label (e.g. CHIPS)</label>
-              <input type="text" required value={formData.catLabel} onChange={e => setFormData({...formData, catLabel: e.target.value})} style={inputStyle} />
+            <div className="full-width">
+              <label>Category</label>
+              <select 
+                required 
+                value={formData.cat} 
+                onChange={e => {
+                  const selectedCat = categories.find(c => c.slug === e.target.value);
+                  setFormData({
+                    ...formData, 
+                    cat: selectedCat?.slug || '', 
+                    catLabel: selectedCat?.name || ''
+                  });
+                }} 
+                style={inputStyle}
+              >
+                <option value="" disabled>Select a Category...</option>
+                {categories.map(c => (
+                  <option key={c.id} value={c.slug}>{c.icon} {c.name}</option>
+                ))}
+              </select>
             </div>
             <div>
               <label>Price (AED)</label>

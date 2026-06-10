@@ -3,6 +3,15 @@ import React from 'react';
 import Link from 'next/link';
 
 export default function SideNav({ isMenuOpen, toggleMenu }: any) {
+  const [categories, setCategories] = React.useState<any[]>([]);
+
+  React.useEffect(() => {
+    fetch('/api/categories')
+      .then(res => res.json())
+      .then(data => setCategories(data))
+      .catch(err => console.error(err));
+  }, []);
+
   return (
     <>
       <div 
@@ -23,18 +32,11 @@ export default function SideNav({ isMenuOpen, toggleMenu }: any) {
             Categories
           </div>
           
-          <Link href="/category/redbull" onClick={toggleMenu}>
-            ⚡ <span>Red Bull</span>
-          </Link>
-          <Link href="/category/monster" onClick={toggleMenu}>
-            🟢 <span>Monster Energy</span>
-          </Link>
-          <Link href="/category/protein" onClick={toggleMenu}>
-            💪 <span>Protein & Fitness</span>
-          </Link>
-          <Link href="/category/snacks" onClick={toggleMenu}>
-            🍟 <span>Chips & Snacks</span>
-          </Link>
+          {categories.map(c => (
+            <Link key={c.id} href={`/category/${c.slug}`} onClick={toggleMenu}>
+              {c.icon || '📦'} <span>{c.name}</span>
+            </Link>
+          ))}
 
           <div style={{ padding: '12px 18px 4px', fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '8px' }}>
             My Account
