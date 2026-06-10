@@ -25,6 +25,9 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose:
         <Link href="/admin/pages" className={pathname === '/admin/pages' ? 'active' : ''} onClick={onClose}>
           📄 Pages
         </Link>
+        <Link href="/admin/banners" className={pathname === '/admin/banners' ? 'active' : ''} onClick={onClose}>
+          🖼️ Banners
+        </Link>
         <Link href="/admin/orders" className={pathname === '/admin/orders' ? 'active' : ''} onClick={onClose}>
           📦 Orders
         </Link>
