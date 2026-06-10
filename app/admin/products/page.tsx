@@ -9,7 +9,7 @@ export default function AdminProducts() {
   const [loading, setLoading] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
   const [formData, setFormData] = useState({
-    name: '', cat: '', catLabel: '', price: 0, oldPrice: 0, tag: '', tagLabel: '', img: '', desc: ''
+    name: '', cat: '', catLabel: '', price: 0, oldPrice: 0, tag: '', tagLabel: '', img: '', desc: '', isOfferEligible: true
   });
   const [editingId, setEditingId] = useState<number | null>(null);
   const [uploadingImg, setUploadingImg] = useState(false);
@@ -66,8 +66,10 @@ export default function AdminProducts() {
             oldPrice: p.oldPrice || null,
             tag: p.tag || null,
             tagLabel: p.tagLabel || null,
+            tagLabel: p.tagLabel || null,
             img: p.img,
-            desc: p.desc || ''
+            desc: p.desc || '',
+            isOfferEligible: true
           })
         });
       }
@@ -96,18 +98,18 @@ export default function AdminProducts() {
         await fetch(`/api/products/${editingId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...formData, oldPrice: formData.oldPrice || null, tag: formData.tag || null, tagLabel: formData.tagLabel || null })
+          body: JSON.stringify({ ...formData, oldPrice: formData.oldPrice || null, tag: formData.tag || null, tagLabel: formData.tagLabel || null, isOfferEligible: formData.isOfferEligible })
         });
       } else {
         await fetch('/api/products', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...formData, oldPrice: formData.oldPrice || null, tag: formData.tag || null, tagLabel: formData.tagLabel || null })
+          body: JSON.stringify({ ...formData, oldPrice: formData.oldPrice || null, tag: formData.tag || null, tagLabel: formData.tagLabel || null, isOfferEligible: formData.isOfferEligible })
         });
       }
       setIsAdding(false);
       setEditingId(null);
-      setFormData({ name: '', cat: '', catLabel: '', price: 0, oldPrice: 0, tag: '', tagLabel: '', img: '', desc: '' });
+      setFormData({ name: '', cat: '', catLabel: '', price: 0, oldPrice: 0, tag: '', tagLabel: '', img: '', desc: '', isOfferEligible: true });
       fetchData();
     } catch (err) {
       alert('Failed to save product');
@@ -117,7 +119,7 @@ export default function AdminProducts() {
   const editProduct = (p: any) => {
     setFormData({
       name: p.name, cat: p.cat, catLabel: p.catLabel, price: p.price, oldPrice: p.oldPrice || 0,
-      tag: p.tag || '', tagLabel: p.tagLabel || '', img: p.img, desc: p.desc || ''
+      tag: p.tag || '', tagLabel: p.tagLabel || '', img: p.img, desc: p.desc || '', isOfferEligible: p.isOfferEligible ?? true
     });
     setEditingId(p.id);
     setIsAdding(true);
@@ -131,7 +133,7 @@ export default function AdminProducts() {
         <h1 className="page-title">Products Management</h1>
         <div style={{ display: 'flex', gap: '10px' }}>
           <button className="btn-secondary" onClick={loadDefaultProducts} style={{ padding: '10px 16px', borderRadius: 'var(--r-md)', border: '1px solid var(--admin-border)', background: 'var(--admin-card)', color: 'var(--admin-text)', cursor: 'pointer', fontWeight: 600 }}>Load Defaults</button>
-          <button className="btn-primary" onClick={() => { setIsAdding(true); setEditingId(null); setFormData({ name: '', cat: '', catLabel: '', price: 0, oldPrice: 0, tag: '', tagLabel: '', img: '', desc: '' }); }}>+ Add Product</button>
+          <button className="btn-primary" onClick={() => { setIsAdding(true); setEditingId(null); setFormData({ name: '', cat: '', catLabel: '', price: 0, oldPrice: 0, tag: '', tagLabel: '', img: '', desc: '', isOfferEligible: true }); }}>+ Add Product</button>
         </div>
       </div>
 
@@ -201,6 +203,10 @@ export default function AdminProducts() {
             <div className="full-width">
               <label>Description</label>
               <textarea value={formData.desc} onChange={e => setFormData({...formData, desc: e.target.value})} style={{ ...inputStyle, height: '80px', resize: 'none' }} />
+            </div>
+            <div className="full-width" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '10px' }}>
+              <input type="checkbox" id="isOfferEligible" checked={formData.isOfferEligible} onChange={e => setFormData({...formData, isOfferEligible: e.target.checked})} style={{ width: '18px', height: '18px', cursor: 'pointer' }} />
+              <label htmlFor="isOfferEligible" style={{ cursor: 'pointer', margin: 0, fontWeight: 700 }}>Eligible for 5% & Free Shipping Offer</label>
             </div>
             <div className="full-width" style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
               <button type="button" onClick={() => setIsAdding(false)} style={{ padding: '10px 20px', borderRadius: 'var(--r-md)', cursor: 'pointer', border: '1px solid var(--admin-border)', background: 'transparent', color: 'var(--admin-text)' }}>Cancel</button>

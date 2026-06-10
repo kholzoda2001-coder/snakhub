@@ -9,6 +9,7 @@ type CartItem = {
   qty: number;
   img: string;
   catLabel: string;
+  isOfferEligible?: boolean;
 };
 
 type CartContextType = {
@@ -23,6 +24,13 @@ type CartContextType = {
   toggleWishlist: (id: number) => void;
   toggleCart: () => void;
   toggleMenu: () => void;
+  totals: {
+    cartTotalQty: number;
+    subtotal: number;
+    discount: number;
+    shipping: number;
+    finalTotal: number;
+  };
 };
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -77,11 +85,48 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const toggleCart = () => setIsCartOpen(!isCartOpen);
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
+  // --- Calculate Totals ---
+  const cartTotalQty = cart.reduce((acc, item) => acc + item.qty, 0);
+  const subtotal = cart.reduce((acc, item) => acc + item.price * item.qty, 0);
+
+  let discount = 0;
+  let shipping = 20;
+
+  // Calculate eligible quantity for the offer
+  const eligibleQty = cart.reduce((acc, item) => {
+    // If isOfferEligible is undefined, we assume true by default so old products don't break.
+    const isEligible = item.isOfferEligible !== false;
+    return isEligible ? acc + item.qty : acc;
+  }, 0);
+
+  const eligibleSubtotal = cart.reduce((acc, item) => {
+    const isEligible = item.isOfferEligible !== false;
+    return isEligible ? acc + item.price * item.qty : acc;
+  }, 0);
+
+  if (eligibleQty >= 2) {
+    discount = eligibleSubtotal * 0.05; // 5% discount on eligible items
+  }
+
+  if (eligibleQty >= 3) {
+    shipping = 0; // Free shipping if 3+ eligible cartons
+  }
+
+  const finalTotal = subtotal - discount + shipping;
+
+  const totals = {
+    cartTotalQty,
+    subtotal,
+    discount,
+    shipping,
+    finalTotal
+  };
+
   return (
     <CartContext.Provider value={{
       cart, wishlist, isCartOpen, isMenuOpen,
       addToCart, removeFromCart, updateQty, clearCart, toggleWishlist,
-      toggleCart, toggleMenu
+      toggleCart, toggleMenu, totals
     }}>
       {children}
     </CartContext.Provider>

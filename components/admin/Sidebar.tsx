@@ -31,6 +31,9 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose:
         <Link href="/admin/orders" className={pathname === '/admin/orders' ? 'active' : ''} onClick={onClose}>
           📦 Orders
         </Link>
+        <Link href="/admin/settings" className={pathname === '/admin/settings' ? 'active' : ''} onClick={onClose}>
+          ⚙️ Settings
+        </Link>
         <Link href="/" target="_blank" style={{ marginTop: '20px' }}>
           🌐 View Live Store
         </Link>

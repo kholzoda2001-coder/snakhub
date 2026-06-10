@@ -18,13 +18,11 @@ const UAE_CITIES = [
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { cart, clearCart } = useCart();
+  const { cart, clearCart, totals } = useCart();
   const [formData, setFormData] = useState({ name: '', phone: '', city: 'Dubai', address: '' });
   const [paymentMethod, setPaymentMethod] = useState<'cod' | 'online'>('cod');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-
-  const total = cart.reduce((acc: number, item: any) => acc + item.price * item.qty, 0);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,7 +40,7 @@ export default function CheckoutPage() {
           ...formData,
           paymentMethod,
           items: cart,
-          total: total
+          total: totals.finalTotal
         })
       });
 
@@ -195,15 +193,25 @@ export default function CheckoutPage() {
                       <div style={{ borderTop: '2px dashed var(--border)', paddingTop: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', color: 'var(--text-secondary)', fontWeight: 600 }}>
                           <span>Subtotal</span>
-                          <span>{total} AED</span>
+                          <span>{totals.subtotal.toFixed(2)} AED</span>
                         </div>
+                        {totals.discount > 0 && (
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', color: '#10b981', fontWeight: 600 }}>
+                            <span>Discount (5%)</span>
+                            <span>-{totals.discount.toFixed(2)} AED</span>
+                          </div>
+                        )}
                         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', color: 'var(--text-secondary)', fontWeight: 600 }}>
                           <span>Shipping</span>
-                          <span style={{ color: '#10b981', fontWeight: 800 }}>FREE</span>
+                          {totals.shipping === 0 ? (
+                            <span style={{ color: '#10b981', fontWeight: 800 }}>FREE</span>
+                          ) : (
+                            <span>{totals.shipping.toFixed(2)} AED</span>
+                          )}
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '22px', fontWeight: 900, marginTop: '10px', paddingTop: '16px', borderTop: '1px solid var(--border)' }}>
                           <span>Total</span>
-                          <span style={{ color: 'var(--orange)' }}>{total} AED</span>
+                          <span style={{ color: 'var(--orange)' }}>{totals.finalTotal.toFixed(2)} AED</span>
                         </div>
                       </div>
                     </div>
@@ -257,9 +265,9 @@ export default function CheckoutPage() {
                           Processing...
                         </>
                       ) : paymentMethod === 'cod' ? (
-                        <>Place Order — {total} AED</>
+                        <>Place Order — {totals.finalTotal.toFixed(2)} AED</>
                       ) : (
-                        <>Proceed to Pay — {total} AED</>
+                        <>Proceed to Pay — {totals.finalTotal.toFixed(2)} AED</>
                       )}
                     </button>
                     <p style={{ textAlign: 'center', fontSize: '13px', color: 'var(--text-secondary)', marginTop: '16px', fontWeight: 500 }}>

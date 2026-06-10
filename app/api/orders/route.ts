@@ -31,7 +31,12 @@ export async function POST(req: Request) {
     });
 
     if (paymentMethod === 'online') {
-      const apiKey = process.env.ZIINA_API_KEY;
+      const setting = await prisma.settings.findUnique({ where: { key: 'ziina_api_key' } });
+      const testModeSetting = await prisma.settings.findUnique({ where: { key: 'ziina_test_mode' } });
+      
+      const apiKey = setting?.value || process.env.ZIINA_API_KEY;
+      const isTestMode = testModeSetting ? testModeSetting.value === 'true' : true;
+
       if (!apiKey) {
         return NextResponse.json({ error: 'Online payment is currently unavailable. Please use COD.' }, { status: 400 });
       }
@@ -46,7 +51,7 @@ export async function POST(req: Request) {
         currency_code: 'AED',
         success_url: `${domain}/checkout/success?order_id=${newOrder.id}`,
         cancel_url: `${domain}/checkout/cancel?order_id=${newOrder.id}`,
-        test: true
+        test: isTestMode
       };
 
       const ziinaRes = await fetch('https://api-v2.ziina.com/api/payment_intent', {
@@ -64,6 +69,12 @@ export async function POST(req: Request) {
       }
 
       const ziinaData = await ziinaRes.json();
+      
+      // Update order with paymentIntentId
+      await prisma.order.update({
+        where: { id: newOrder.id },
+        data: { paymentIntentId: ziinaData.id }
+      });
       
       return NextResponse.json({ ...newOrder, redirect_url: ziinaData.redirect_url }, { status: 201 });
     }

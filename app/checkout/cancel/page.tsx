@@ -1,15 +1,20 @@
 'use client';
-import React, { useEffect } from 'react';
+import React, { useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import ShopShell from '../../../components/ShopShell';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
-export default function CheckoutCancelPage() {
+function CancelContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const orderId = searchParams.get('order_id');
 
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, []);
+    if (orderId) {
+      fetch(`/api/orders/${orderId}/verify`).catch(() => {});
+    }
+  }, [orderId]);
 
   return (
     <>
@@ -69,8 +74,17 @@ export default function CheckoutCancelPage() {
               </Link>
             </div>
           </div>
-        </div>
       </div>
+  );
+}
+
+export default function CheckoutCancelPage() {
+  return (
+    <>
+      <ShopShell />
+      <Suspense fallback={<div style={{ minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>Loading...</div>}>
+        <CancelContent />
+      </Suspense>
     </>
   );
 }

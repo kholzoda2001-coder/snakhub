@@ -1,10 +1,11 @@
 'use client';
 import React from 'react';
 import { useRouter } from 'next/navigation';
+import { useCart } from '../context/CartContext';
 
 export default function CartPanel({ cart, isCartOpen, toggleCart, removeFromCart, updateQty }: any) {
   const router = useRouter();
-  const subtotal = cart.reduce((acc: number, item: any) => acc + item.price * item.qty, 0);
+  const { totals } = useCart();
 
   return (
     <>
@@ -45,9 +46,12 @@ export default function CartPanel({ cart, isCartOpen, toggleCart, removeFromCart
         {cart.length > 0 && (
           <div className="cart-footer visible">
             <div className="cart-totals">
-              <div className="ct-row"><span>Subtotal</span><span>{subtotal} AED</span></div>
-              <div className="ct-row"><span>Delivery</span><span>Free</span></div>
-              <div className="ct-row total"><span>Total</span><span>{subtotal} AED</span></div>
+              <div className="ct-row"><span>Subtotal</span><span>{totals.subtotal.toFixed(2)} AED</span></div>
+              {totals.discount > 0 && (
+                <div className="ct-row" style={{ color: '#10b981' }}><span>Discount (5%)</span><span>-{totals.discount.toFixed(2)} AED</span></div>
+              )}
+              <div className="ct-row"><span>Delivery</span><span>{totals.shipping === 0 ? <span style={{ color: '#10b981', fontWeight: 800 }}>Free</span> : `${totals.shipping.toFixed(2)} AED`}</span></div>
+              <div className="ct-row total"><span>Total</span><span>{totals.finalTotal.toFixed(2)} AED</span></div>
             </div>
             <button className="btn-checkout" onClick={() => { toggleCart(); router.push('/checkout'); }}>Checkout Securely</button>
           </div>

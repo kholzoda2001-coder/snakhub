@@ -8,19 +8,22 @@ generator client {
 }
 
 model Product {
-  id        Int      @id @default(autoincrement())
-  name      String
-  cat       String
-  catLabel  String
-  price     Float
-  oldPrice  Float?
-  tag       String?
-  tagLabel  String?
-  img       String
-  viewers   Int      @default(0)
-  stock     Int      @default(0)
-  desc      String   @db.Text
-  createdAt DateTime @default(now())
+  id              Int      @id @default(autoincrement())
+  name            String
+  cat             String
+  catLabel        String
+  price           Float
+  oldPrice        Float?
+  details         String?  @db.Text
+  badge           String?
+  isOfferEligible Boolean  @default(true)
+  tag             String?
+  tagLabel        String?
+  img             String
+  viewers         Int      @default(0)
+  stock           Int      @default(0)
+  desc            String   @db.Text
+  createdAt       DateTime @default(now())
 }
 
 model Order {
@@ -28,10 +31,11 @@ model Order {
   name      String
   phone     String
   address   String
-  items     Json
-  total     Float
-  status    String   @default("Pending")
-  createdAt DateTime @default(now())
+  items           Json
+  total           Float
+  status          String   @default("Pending")
+  paymentIntentId String?  @db.VarChar(255)
+  createdAt       DateTime @default(now())
 }
 
 model Category {
@@ -63,4 +67,11 @@ model Banner {
   link      String?
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
+}
+
+model Settings {
+  id        Int      @id @default(1)
+  key       String   @unique
+  value     String   @db.LongText
+  updatedAt DateTime @updatedAt
 }
