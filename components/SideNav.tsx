@@ -12,6 +12,22 @@ export default function SideNav({ isMenuOpen, toggleMenu }: any) {
       .catch(err => console.error(err));
   }, []);
 
+  // Lock body scroll when sidebar is open
+  React.useEffect(() => {
+    if (isMenuOpen) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.touchAction = 'none';
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+    };
+  }, [isMenuOpen]);
+
+
   return (
     <>
       <div 
