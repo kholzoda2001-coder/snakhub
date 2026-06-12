@@ -36,7 +36,7 @@ export default function SideNav({ isMenuOpen, toggleMenu }: any) {
       ></div>
       <nav className={`side-nav ${isMenuOpen ? 'active' : ''}`}>
         <div className="panel-header">
-          <div className="panel-logo"><img src="/logo.jpg" alt="Snack Hub" /></div>
+          <div className="panel-logo"><img src="/logo.svg" alt="Snack Hub" style={{ height: '38px', width: 'auto' }} /></div>
           <button className="close-x" onClick={toggleMenu} aria-label="Close menu">✕</button>
         </div>
         <div className="side-links">
