@@ -16,7 +16,7 @@ export default function Header({ toggleTheme, toggleCart, toggleMenu, cartCount 
           </button>
           <div className="brand-logo">
             <Link href="/" style={{ display: 'block', textDecoration: 'none' }}>
-              <img src="/logo.svg" alt="Snack Hub" style={{ height: '40px', width: 'auto' }} />
+              <img src="/logo.jpg" alt="Snack Hub" style={{ height: '38px', width: 'auto', objectFit: 'contain', borderRadius: '6px' }} />
             </Link>
           </div>
         </div>
