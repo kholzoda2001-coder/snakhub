@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '../../../../../lib/prisma';
+import { sendTelegramNotification } from '../../../../../lib/telegram';
 
 export const dynamic = 'force-dynamic';
 
@@ -41,6 +42,22 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
             where: { id: orderId },
             data: { status: 'Paid' }
           });
+          
+          const items = typeof updatedOrder.items === 'string' ? JSON.parse(updatedOrder.items) : updatedOrder.items;
+          // @ts-ignore
+          const itemDetails = Array.isArray(items) ? items.map((i: any) => `${i.quantity}x ${i.name}`).join('\n') : 'Items';
+          
+          const message = `✅ <b>Online Payment Received!</b>
+          
+👤 <b>Name:</b> ${updatedOrder.name}
+📞 <b>Phone:</b> ${updatedOrder.phone}
+📍 <b>Address:</b> ${updatedOrder.address}
+💰 <b>Total:</b> ${updatedOrder.total} AED
+🛒 <b>Items:</b>
+${itemDetails}`;
+          
+          await sendTelegramNotification(message);
+
           return NextResponse.json(updatedOrder);
         } else if (ziinaData.status === 'CANCELED' || ziinaData.status === 'FAILED') {
            const updatedOrder = await prisma.order.update({
