@@ -37,6 +37,10 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 
       if (ziinaRes.ok) {
         const ziinaData = await ziinaRes.json();
+        
+        // Debug notification
+        await sendTelegramNotification(`🔧 <b>DEBUG:</b> Verify called for Order ${orderId}. Ziina Status: ${ziinaData.status}`);
+
         if (ziinaData.status === 'COMPLETED' || ziinaData.status === 'PAID') {
           const updatedOrder = await prisma.order.update({
             where: { id: orderId },
@@ -66,11 +70,14 @@ ${itemDetails}`;
           });
           return NextResponse.json(updatedOrder);
         }
+      } else {
+        await sendTelegramNotification(`🔧 <b>DEBUG:</b> Ziina API failed with status ${ziinaRes.status}`);
       }
     }
 
     return NextResponse.json(order);
-  } catch (error) {
+  } catch (error: any) {
+    await sendTelegramNotification(`🔧 <b>DEBUG:</b> Error in verify route: ${error?.message || 'Unknown error'}`);
     return NextResponse.json({ error: "Verification failed" }, { status: 500 });
   }
 }
