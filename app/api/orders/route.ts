@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '../../../lib/prisma';
+import { sendTelegramNotification } from '../../../lib/telegram';
 
 export const dynamic = 'force-dynamic';
 
@@ -76,9 +77,36 @@ export async function POST(req: Request) {
         data: { paymentIntentId: ziinaData.id }
       });
       
+      if (paymentMethod !== 'online') {
+        const itemDetails = items.map((i: any) => `${i.quantity}x ${i.name}`).join('\n');
+        const message = `🔔 <b>New COD Order!</b>
+        
+👤 <b>Name:</b> ${name}
+📞 <b>Phone:</b> ${phone}
+📍 <b>Address:</b> ${address}
+💰 <b>Total:</b> ${total} AED
+🛒 <b>Items:</b>
+${itemDetails}`;
+        
+        await sendTelegramNotification(message);
+      }
+      
       return NextResponse.json({ ...newOrder, redirect_url: ziinaData.redirect_url }, { status: 201 });
     }
     
+    // COD notification
+    const itemDetails = items.map((i: any) => `${i.quantity}x ${i.name}`).join('\n');
+    const message = `🔔 <b>New COD Order!</b>
+    
+👤 <b>Name:</b> ${name}
+📞 <b>Phone:</b> ${phone}
+📍 <b>Address:</b> ${address}
+💰 <b>Total:</b> ${total} AED
+🛒 <b>Items:</b>
+${itemDetails}`;
+    
+    await sendTelegramNotification(message);
+
     return NextResponse.json(newOrder, { status: 201 });
   } catch (error) {
     console.error('Error creating order:', error);

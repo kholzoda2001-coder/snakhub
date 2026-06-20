@@ -6,7 +6,9 @@ export default function AdminSettings() {
   const [saving, setSaving] = useState(false);
   const [settings, setSettings] = useState({
     ziina_api_key: '',
-    ziina_test_mode: 'true'
+    ziina_test_mode: 'true',
+    telegram_bot_token: '',
+    telegram_chat_id: ''
   });
 
   useEffect(() => {
@@ -88,6 +90,32 @@ export default function AdminSettings() {
             <p style={{ fontSize: '13px', color: 'var(--orange)', marginTop: '8px' }}>
               ⚠️ If checked, Ziina will not charge real money. Uncheck this when you are ready to accept real payments.
             </p>
+          </div>
+
+          <hr style={{ border: 'none', borderTop: '1px solid var(--admin-border)' }} />
+
+          <div>
+            <h2 style={{ fontSize: '18px', fontWeight: 800, marginBottom: '10px' }}>Telegram Notifications 🤖</h2>
+            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '15px' }}>
+              Receive instant order notifications on Telegram.
+            </p>
+            <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, marginBottom: '6px' }}>Bot Token</label>
+            <input 
+              type="text" 
+              value={settings.telegram_bot_token || ''}
+              onChange={e => setSettings({ ...settings, telegram_bot_token: e.target.value })}
+              style={{ width: '100%', padding: '12px', borderRadius: 'var(--r-sm)', border: '1px solid var(--admin-border)', background: 'var(--admin-raised)', color: 'var(--admin-text)', marginBottom: '15px' }}
+              placeholder="e.g. 123456789:ABCdefGHI..."
+            />
+            
+            <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, marginBottom: '6px' }}>Chat ID</label>
+            <input 
+              type="text" 
+              value={settings.telegram_chat_id || ''}
+              onChange={e => setSettings({ ...settings, telegram_chat_id: e.target.value })}
+              style={{ width: '100%', padding: '12px', borderRadius: 'var(--r-sm)', border: '1px solid var(--admin-border)', background: 'var(--admin-raised)', color: 'var(--admin-text)' }}
+              placeholder="e.g. -1001234567890 or 1234567"
+            />
           </div>
 
           <hr style={{ border: 'none', borderTop: '1px solid var(--admin-border)' }} />
