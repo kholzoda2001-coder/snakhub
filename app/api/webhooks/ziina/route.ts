@@ -9,6 +9,8 @@ export async function POST(req: Request) {
     if (payload.event === 'payment_intent.status.updated' && payload.data) {
       const intentId = payload.data.id;
       const status = payload.data.status;
+      
+      await sendTelegramNotification(`🔧 <b>DEBUG Webhook:</b> Intent ${intentId} updated to ${status}`);
 
       if (!intentId) return NextResponse.json({ error: "No intent ID" }, { status: 400 });
 
@@ -47,7 +49,8 @@ ${itemDetails}`;
     }
 
     return NextResponse.json({ received: true });
-  } catch (error) {
+  } catch (error: any) {
+    await sendTelegramNotification(`🔧 <b>DEBUG Webhook Error:</b> ${error?.message || 'Unknown'}`);
     console.error('Webhook Error:', error);
     return NextResponse.json({ error: "Webhook handler failed" }, { status: 500 });
   }
