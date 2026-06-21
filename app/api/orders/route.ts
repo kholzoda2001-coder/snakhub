@@ -34,11 +34,13 @@ export async function POST(req: Request) {
     if (paymentMethod === 'online') {
       const setting = await prisma.settings.findUnique({ where: { key: 'ziina_api_key' } });
       const testModeSetting = await prisma.settings.findUnique({ where: { key: 'ziina_test_mode' } });
+      const enabledSetting = await prisma.settings.findUnique({ where: { key: 'ziina_enabled' } });
       
       const apiKey = setting?.value || process.env.ZIINA_API_KEY;
       const isTestMode = testModeSetting ? testModeSetting.value === 'true' : true;
+      const isZiinaEnabled = enabledSetting ? enabledSetting.value === 'true' : true;
 
-      if (!apiKey) {
+      if (!apiKey || !isZiinaEnabled) {
         return NextResponse.json({ error: 'Online payment is currently unavailable. Please use COD.' }, { status: 400 });
       }
 

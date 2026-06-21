@@ -23,6 +23,19 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState<'cod' | 'online'>('cod');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [ziinaEnabled, setZiinaEnabled] = useState(true); // Default true, will update on mount
+
+  React.useEffect(() => {
+    fetch('/api/checkout-config')
+      .then(res => res.json())
+      .then(data => {
+        setZiinaEnabled(data.ziinaEnabled);
+        if (!data.ziinaEnabled && paymentMethod === 'online') {
+          setPaymentMethod('cod');
+        }
+      })
+      .catch(console.error);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -235,14 +248,16 @@ export default function CheckoutPage() {
                         </div>
                       </label>
                       
-                      <label style={{ display: 'flex', alignItems: 'center', gap: '16px', cursor: 'pointer', background: paymentMethod === 'online' ? 'var(--bg-main)' : 'var(--bg-input)', padding: '20px', borderRadius: 'var(--r-md)', border: paymentMethod === 'online' ? '2px solid var(--orange)' : '2px solid var(--border)', transition: 'all 0.2s' }}>
-                        <div style={{ width: '22px', height: '22px', borderRadius: '50%', border: paymentMethod === 'online' ? '6px solid var(--orange)' : '2px solid var(--text-muted)', background: paymentMethod === 'online' ? '#fff' : 'transparent', transition: 'all 0.2s' }}></div>
-                        <input type="radio" name="payment" value="online" checked={paymentMethod === 'online'} onChange={() => setPaymentMethod('online')} style={{ display: 'none' }} />
-                        <div>
-                          <div style={{ fontWeight: 800, fontSize: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>💳 Pay Online Securely</div>
-                          <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px', fontWeight: 500 }}>Pay via Ziina (Apple Pay, Card).</div>
-                        </div>
-                      </label>
+                      {ziinaEnabled && (
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '16px', cursor: 'pointer', background: paymentMethod === 'online' ? 'var(--bg-main)' : 'var(--bg-input)', padding: '20px', borderRadius: 'var(--r-md)', border: paymentMethod === 'online' ? '2px solid var(--orange)' : '2px solid var(--border)', transition: 'all 0.2s' }}>
+                          <div style={{ width: '22px', height: '22px', borderRadius: '50%', border: paymentMethod === 'online' ? '6px solid var(--orange)' : '2px solid var(--text-muted)', background: paymentMethod === 'online' ? '#fff' : 'transparent', transition: 'all 0.2s' }}></div>
+                          <input type="radio" name="payment" value="online" checked={paymentMethod === 'online'} onChange={() => setPaymentMethod('online')} style={{ display: 'none' }} />
+                          <div>
+                            <div style={{ fontWeight: 800, fontSize: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>💳 Pay Online Securely</div>
+                            <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px', fontWeight: 500 }}>Pay via Ziina (Apple Pay, Card).</div>
+                          </div>
+                        </label>
+                      )}
                     </div>
                   </div>
                   

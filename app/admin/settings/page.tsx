@@ -6,6 +6,7 @@ export default function AdminSettings() {
   const [saving, setSaving] = useState(false);
   const [settings, setSettings] = useState({
     ziina_api_key: '',
+    ziina_enabled: 'true',
     ziina_test_mode: 'true',
     telegram_bot_token: '',
     telegram_chat_id: ''
@@ -76,6 +77,19 @@ export default function AdminSettings() {
             />
             
             <div style={{ marginTop: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <input 
+                type="checkbox" 
+                id="ziinaEnabled"
+                checked={settings.ziina_enabled === 'true'}
+                onChange={e => setSettings({ ...settings, ziina_enabled: e.target.checked ? 'true' : 'false' })}
+                style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+              />
+              <label htmlFor="ziinaEnabled" style={{ fontSize: '14px', fontWeight: 700, cursor: 'pointer' }}>
+                Enable Online Payments (Ziina)
+              </label>
+            </div>
+
+            <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '10px' }}>
               <input 
                 type="checkbox" 
                 id="testMode"
