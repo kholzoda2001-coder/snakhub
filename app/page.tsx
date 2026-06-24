@@ -10,6 +10,7 @@ import { useCart } from '../context/CartContext';
 export default function Home() {
   const [productsData, setProductsData] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const { addToCart, wishlist, toggleWishlist } = useCart();
 
   useEffect(() => {
@@ -18,18 +19,16 @@ export default function Home() {
       fetch('/api/categories').then(res => res.json())
     ])
     .then(([prodData, catData]) => {
-      if (Array.isArray(prodData) && prodData.length > 0) {
+      if (Array.isArray(prodData)) {
         setProductsData(prodData);
-      } else {
-        import('../data/products').then(mod => setProductsData(mod.products));
       }
-
       if (Array.isArray(catData)) {
         setCategories(catData);
       }
+      setLoading(false);
     })
     .catch(() => {
-      import('../data/products').then(mod => setProductsData(mod.products));
+      setLoading(false);
     });
   }, []);
 
@@ -72,7 +71,15 @@ export default function Home() {
       <Hero />
       <CategoryCircles />
       
-      {categoryGroups.length > 0 ? (
+      {loading ? (
+        <div style={{ padding: '60px 0', textAlign: 'center', color: 'var(--text-secondary)' }}>
+          <svg className="spinner" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ animation: 'spin 1s linear infinite', marginBottom: '16px' }}><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+          <div style={{ fontWeight: 700 }}>Loading products...</div>
+          <style dangerouslySetInnerHTML={{__html: `
+            @keyframes spin { 100% { transform: rotate(360deg); } }
+          `}} />
+        </div>
+      ) : categoryGroups.length > 0 ? (
         categoryGroups.map((group, index) => (
           <ProductList 
             key={index}

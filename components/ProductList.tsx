@@ -7,7 +7,7 @@ export default function ProductList({ productsData, activeCategory, searchQuery,
   const displayTitle = title || "Hot Picks";
   const [firstWord, ...restWords] = displayTitle.split(" ");
   const restTitle = restWords.join(" ");
-  const productsToUse = productsData && productsData.length > 0 ? productsData : products;
+  const productsToUse = productsData || [];
   
   const filtered = productsToUse.filter((p: any) => {
     const matchCat = activeCategory === 'all' || p.cat === activeCategory;

@@ -27,18 +27,12 @@ export default function CategoryPage({ params }: { params: { slug: string } }) {
     fetch('/api/products')
       .then(res => res.json())
       .then(data => {
-        if (Array.isArray(data) && data.length > 0) {
+        if (Array.isArray(data)) {
           setProductsData(data.filter((p: any) => p.cat === slug));
-        } else {
-          import('../../../data/products').then(mod => {
-            setProductsData(mod.products.filter((p: any) => p.cat === slug));
-          });
         }
       })
       .catch(() => {
-        import('../../../data/products').then(mod => {
-          setProductsData(mod.products.filter((p: any) => p.cat === slug));
-        });
+        setProductsData([]);
       })
       .finally(() => {
         setLoading(false);
