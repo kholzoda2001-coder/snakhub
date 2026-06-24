@@ -41,7 +41,7 @@ export default function Hero() {
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
           </a>
         </div>
-        <div className="hero-img">
+        <div className="hero-img-default">
           <img src="https://images.unsplash.com/photo-1622543925917-763c34d1a86e?w=500&q=85" alt="Monster Energy" />
         </div>
         <span className="hero-badge">2026 Edition</span>
@@ -57,26 +57,37 @@ export default function Hero() {
       <div className="hero-grid"></div>
       
       {/* Added transition wrapper */}
-      <div style={{ display: 'flex', width: '100%', transition: 'transform 0.5s ease', transform: `translateX(-${currentIndex * 100}%)` }}>
+      <div style={{ display: 'flex', width: '100%', height: '100%', transition: 'transform 0.5s ease', transform: `translateX(-${currentIndex * 100}%)` }}>
         {banners.map((banner, index) => (
-          <div key={banner.id} style={{ minWidth: '100%', display: 'flex', flexWrap: 'wrap', position: 'relative' }}>
-            <div className="hero-content" style={{ flex: '1 1 300px' }}>
-              {banner.eyebrow && <div className="hero-eyebrow">{banner.eyebrow}</div>}
-              
-              {/* Parse title to allow <em> tag if they typed it */}
-              <h1 className="hero-title" dangerouslySetInnerHTML={{ __html: banner.title }}></h1>
-              
-              {banner.desc && <p className="hero-desc">{banner.desc}</p>}
-              
-              <Link href={banner.link || '#shop'} className="hero-cta">
-                Shop Now
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-              </Link>
-            </div>
-            <div className="hero-img" style={{ flex: '1 1 300px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-              <img src={banner.img} alt="Banner Image" style={{ maxWidth: '100%', objectFit: 'contain' }} />
-            </div>
-            {banner.badge && <span className="hero-badge">{banner.badge}</span>}
+          <div key={banner.id} style={{ minWidth: '100%', display: 'flex', flexDirection: 'row', flexWrap: 'wrap', position: 'relative', alignItems: 'stretch' }}>
+            
+            {/* If there is no title and desc, treat image as full background */}
+            {(!banner.title && !banner.desc) && (
+               <div style={{ position: 'absolute', inset: 0, zIndex: 1 }}>
+                 <img src={banner.img} alt="Banner" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                 <Link href={banner.link || '#shop'} style={{ position: 'absolute', inset: 0, zIndex: 5 }}></Link>
+               </div>
+            )}
+
+            {/* Content overlay (only shows if title or desc exist) */}
+            {(banner.title || banner.desc || banner.eyebrow) && (
+              <>
+                <div className="hero-content" style={{ zIndex: 2 }}>
+                  {banner.eyebrow && <div className="hero-eyebrow">{banner.eyebrow}</div>}
+                  {banner.title && <h1 className="hero-title" dangerouslySetInnerHTML={{ __html: banner.title }}></h1>}
+                  {banner.desc && <p className="hero-desc">{banner.desc}</p>}
+                  <Link href={banner.link || '#shop'} className="hero-cta">
+                    Shop Now
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                  </Link>
+                </div>
+                <div style={{ flex: '1 1 300px', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px', zIndex: 1 }}>
+                  <img src={banner.img} alt="Banner Image" style={{ maxWidth: '100%', maxHeight: '300px', objectFit: 'contain' }} />
+                </div>
+              </>
+            )}
+
+            {banner.badge && <span className="hero-badge" style={{ zIndex: 3 }}>{banner.badge}</span>}
           </div>
         ))}
       </div>
