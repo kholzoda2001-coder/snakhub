@@ -68,7 +68,7 @@ export default function Hero() {
 
             {/* If there is text, add a subtle gradient overlay so text is readable */}
             {(banner.title || banner.desc || banner.eyebrow) ? (
-              <div style={{ position: 'absolute', inset: 0, zIndex: 2, background: 'linear-gradient(90deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 50%, transparent 100%)' }}></div>
+              <div style={{ position: 'absolute', inset: 0, zIndex: 2, background: 'linear-gradient(to top right, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.3) 50%, transparent 100%)' }}></div>
             ) : (
               <Link href={banner.link || '#shop'} style={{ position: 'absolute', inset: 0, zIndex: 5 }}></Link>
             )}
