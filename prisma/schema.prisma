@@ -19,7 +19,8 @@ model Product {
   isOfferEligible Boolean  @default(true)
   tag             String?
   tagLabel        String?
-  img             String
+  img             String   @db.LongText
+  images          Json?
   viewers         Int      @default(0)
   stock           Int      @default(0)
   desc            String   @db.Text

@@ -1,7 +1,46 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import { products as defaultProducts } from '../../../data/products';
-import { uploadImage } from '../../../lib/uploadImage';
+
+const compressImage = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target?.result as string;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 800;
+        const MAX_HEIGHT = 800;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, width, height);
+        
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+        resolve(dataUrl);
+      };
+      img.onerror = (error) => reject(error);
+    };
+    reader.onerror = (error) => reject(error);
+  });
+};
 
 export default function AdminProducts() {
   const [products, setProducts] = useState<any[]>([]);
@@ -9,24 +48,42 @@ export default function AdminProducts() {
   const [loading, setLoading] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
   const [formData, setFormData] = useState({
-    name: '', cat: '', catLabel: '', price: 0, oldPrice: 0, tag: '', tagLabel: '', img: '', desc: '', isOfferEligible: true
+    name: '', cat: '', catLabel: '', price: 0, oldPrice: 0, tag: '', tagLabel: '', img: '', images: [] as string[], desc: '', isOfferEligible: true
   });
   const [editingId, setEditingId] = useState<number | null>(null);
   const [uploadingImg, setUploadingImg] = useState(false);
-  const [imgMethod, setImgMethod] = useState<'url' | 'upload'>('url');
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files?.[0]) return;
+    if (!e.target.files?.length) return;
     setUploadingImg(true);
     try {
-      const url = await uploadImage(e.target.files[0]);
-      setFormData(prev => ({ ...prev, img: url }));
-      alert('Image uploaded successfully!');
+      const files = Array.from(e.target.files);
+      const base64Images = await Promise.all(files.map(compressImage));
+      
+      setFormData(prev => {
+        const newImages = [...(prev.images || []), ...base64Images];
+        return {
+          ...prev,
+          img: newImages[0] || '',
+          images: newImages
+        };
+      });
     } catch (err: any) {
-      alert(err.message || 'Upload failed');
+      alert('Failed to process images');
     } finally {
       setUploadingImg(false);
     }
+  };
+
+  const removeImage = (indexToRemove: number) => {
+    setFormData(prev => {
+      const newImages = prev.images.filter((_, i) => i !== indexToRemove);
+      return {
+        ...prev,
+        img: newImages[0] || '',
+        images: newImages
+      };
+    });
   };
 
   const fetchData = async () => {
@@ -66,8 +123,8 @@ export default function AdminProducts() {
             oldPrice: p.oldPrice || null,
             tag: p.tag || null,
             tagLabel: p.tagLabel || null,
-            tagLabel: p.tagLabel || null,
             img: p.img,
+            images: p.images || [p.img],
             desc: p.desc || '',
             isOfferEligible: true
           })
@@ -94,22 +151,23 @@ export default function AdminProducts() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const payload = { ...formData, oldPrice: formData.oldPrice || null, tag: formData.tag || null, tagLabel: formData.tagLabel || null, isOfferEligible: formData.isOfferEligible };
       if (editingId) {
         await fetch(`/api/products/${editingId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...formData, oldPrice: formData.oldPrice || null, tag: formData.tag || null, tagLabel: formData.tagLabel || null, isOfferEligible: formData.isOfferEligible })
+          body: JSON.stringify(payload)
         });
       } else {
         await fetch('/api/products', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...formData, oldPrice: formData.oldPrice || null, tag: formData.tag || null, tagLabel: formData.tagLabel || null, isOfferEligible: formData.isOfferEligible })
+          body: JSON.stringify(payload)
         });
       }
       setIsAdding(false);
       setEditingId(null);
-      setFormData({ name: '', cat: '', catLabel: '', price: 0, oldPrice: 0, tag: '', tagLabel: '', img: '', desc: '', isOfferEligible: true });
+      setFormData({ name: '', cat: '', catLabel: '', price: 0, oldPrice: 0, tag: '', tagLabel: '', img: '', images: [], desc: '', isOfferEligible: true });
       fetchData();
     } catch (err) {
       alert('Failed to save product');
@@ -119,7 +177,7 @@ export default function AdminProducts() {
   const editProduct = (p: any) => {
     setFormData({
       name: p.name, cat: p.cat, catLabel: p.catLabel, price: p.price, oldPrice: p.oldPrice || 0,
-      tag: p.tag || '', tagLabel: p.tagLabel || '', img: p.img, desc: p.desc || '', isOfferEligible: p.isOfferEligible ?? true
+      tag: p.tag || '', tagLabel: p.tagLabel || '', img: p.img, images: Array.isArray(p.images) ? p.images : (p.img ? [p.img] : []), desc: p.desc || '', isOfferEligible: p.isOfferEligible ?? true
     });
     setEditingId(p.id);
     setIsAdding(true);
@@ -133,7 +191,7 @@ export default function AdminProducts() {
         <h1 className="page-title">Products Management</h1>
         <div style={{ display: 'flex', gap: '10px' }}>
           <button className="btn-secondary" onClick={loadDefaultProducts} style={{ padding: '10px 16px', borderRadius: 'var(--r-md)', border: '1px solid var(--admin-border)', background: 'var(--admin-card)', color: 'var(--admin-text)', cursor: 'pointer', fontWeight: 600 }}>Load Defaults</button>
-          <button className="btn-primary" onClick={() => { setIsAdding(true); setEditingId(null); setFormData({ name: '', cat: '', catLabel: '', price: 0, oldPrice: 0, tag: '', tagLabel: '', img: '', desc: '', isOfferEligible: true }); }}>+ Add Product</button>
+          <button className="btn-primary" onClick={() => { setIsAdding(true); setEditingId(null); setFormData({ name: '', cat: '', catLabel: '', price: 0, oldPrice: 0, tag: '', tagLabel: '', img: '', images: [], desc: '', isOfferEligible: true }); }}>+ Add Product</button>
         </div>
       </div>
 
@@ -145,24 +203,24 @@ export default function AdminProducts() {
               <label>Name</label>
               <input type="text" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} style={inputStyle} />
             </div>
+            
             <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <label>Image</label>
-                <div style={{ display: 'flex', gap: '5px' }}>
-                  <button type="button" onClick={() => setImgMethod('url')} style={{ padding: '2px 8px', fontSize: '12px', background: imgMethod === 'url' ? 'var(--admin-primary)' : 'transparent', color: imgMethod === 'url' ? '#fff' : 'var(--admin-text)', border: '1px solid var(--admin-border)', borderRadius: 'var(--r-sm)', cursor: 'pointer' }}>URL</button>
-                  <button type="button" onClick={() => setImgMethod('upload')} style={{ padding: '2px 8px', fontSize: '12px', background: imgMethod === 'upload' ? 'var(--admin-primary)' : 'transparent', color: imgMethod === 'upload' ? '#fff' : 'var(--admin-text)', border: '1px solid var(--admin-border)', borderRadius: 'var(--r-sm)', cursor: 'pointer' }}>Upload</button>
-                </div>
-              </div>
-              {imgMethod === 'url' ? (
-                <input type="text" required value={formData.img} onChange={e => setFormData({...formData, img: e.target.value})} style={inputStyle} placeholder="https://..." />
-              ) : (
-                <div style={{ marginTop: '4px' }}>
-                  <input type="file" accept="image/*" onChange={handleImageUpload} style={{ ...inputStyle, padding: '7px' }} disabled={uploadingImg} />
-                  {uploadingImg && <span style={{ fontSize: '12px', color: 'var(--admin-primary)' }}>Uploading...</span>}
-                  {formData.img && imgMethod === 'upload' && !uploadingImg && <img src={formData.img} alt="Preview" style={{ width: '40px', height: '40px', objectFit: 'cover', marginTop: '5px', borderRadius: '4px' }} />}
+              <label>Images (Upload multiple)</label>
+              <input type="file" accept="image/*" multiple onChange={handleImageUpload} style={{ ...inputStyle, padding: '7px' }} disabled={uploadingImg} />
+              {uploadingImg && <span style={{ fontSize: '12px', color: 'var(--admin-primary)', marginTop: '4px' }}>Processing & Compressing Images...</span>}
+              
+              {formData.images && formData.images.length > 0 && (
+                <div style={{ display: 'flex', gap: '10px', marginTop: '10px', flexWrap: 'wrap' }}>
+                  {formData.images.map((imgUrl, idx) => (
+                    <div key={idx} style={{ position: 'relative', width: '60px', height: '60px' }}>
+                      <img src={imgUrl} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '6px', border: '1px solid var(--admin-border)' }} />
+                      <button type="button" onClick={() => removeImage(idx)} style={{ position: 'absolute', top: '-5px', right: '-5px', background: 'red', color: 'white', border: 'none', borderRadius: '50%', width: '18px', height: '18px', fontSize: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>X</button>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
+
             <div className="full-width">
               <label>Category</label>
               <select 

@@ -11,6 +11,7 @@ export default function ProductDetailPage() {
   const { id } = useParams();
   const router = useRouter();
   const [product, setProduct] = useState<any>(null);
+  const [activeImg, setActiveImg] = useState('');
   const [related, setRelated] = useState<any[]>([]);
   const [qty, setQty] = useState(1);
   const { addToCart, updateQty, wishlist, toggleWishlist } = useCart();
@@ -29,6 +30,7 @@ export default function ProductDetailPage() {
         const found = allProducts.find((p: any) => p.id.toString() === id);
         if (found) {
           setProduct(found);
+          setActiveImg(found.img);
           // Get related products from same category
           const rel = allProducts.filter((p: any) => p.cat === found.cat && p.id !== found.id).slice(0, 4);
           setRelated(rel.length > 0 ? rel : allProducts.filter((p: any) => p.id !== found.id).slice(0, 4));
@@ -39,6 +41,7 @@ export default function ProductDetailPage() {
         const found = products.find((p: any) => p.id.toString() === id);
         if (found) {
           setProduct(found);
+          setActiveImg(found.img);
           setRelated(products.filter((p: any) => p.cat === found.cat && p.id !== found.id).slice(0, 4));
         }
       }
@@ -74,12 +77,39 @@ export default function ProductDetailPage() {
           <div className="product-detail-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '40px', alignItems: 'start' }}>
             
             {/* Left: Image Presentation */}
-            <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', maxWidth: '400px', margin: '0 auto', aspectRatio: '1/1', background: 'var(--bg-raised)', borderRadius: 'var(--r-md)', overflow: 'hidden' }}>
-              {product.tag && <span className={`p-tag ${product.tag}`} style={{ position: 'absolute', top: '10px', left: '10px', fontSize: '14px', padding: '6px 12px' }}>{product.tagLabel}</span>}
-              <button className={`wl-btn ${inWL ? 'on' : ''}`} onClick={() => toggleWishlist(product.id)} style={{ position: 'absolute', top: '10px', right: '10px', width: '40px', height: '40px', fontSize: '20px', zIndex: 10 }}>
-                {inWL ? '❤️' : '🤍'}
-              </button>
-              <img src={product.img} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%', maxWidth: '400px', margin: '0 auto' }}>
+              <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', aspectRatio: '1/1', background: 'var(--bg-raised)', borderRadius: 'var(--r-md)', overflow: 'hidden' }}>
+                {product.tag && <span className={`p-tag ${product.tag}`} style={{ position: 'absolute', top: '10px', left: '10px', fontSize: '14px', padding: '6px 12px' }}>{product.tagLabel}</span>}
+                <button className={`wl-btn ${inWL ? 'on' : ''}`} onClick={() => toggleWishlist(product.id)} style={{ position: 'absolute', top: '10px', right: '10px', width: '40px', height: '40px', fontSize: '20px', zIndex: 10 }}>
+                  {inWL ? '❤️' : '🤍'}
+                </button>
+                <img src={activeImg || product.img} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              </div>
+              
+              {/* Gallery Thumbnails */}
+              {product.images && Array.isArray(product.images) && product.images.length > 1 && (
+                <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '8px', scrollbarWidth: 'thin' }}>
+                  {product.images.map((img: string, idx: number) => (
+                    <button 
+                      key={idx} 
+                      onClick={() => setActiveImg(img)}
+                      style={{ 
+                        flexShrink: 0, 
+                        width: '70px', 
+                        height: '70px', 
+                        borderRadius: 'var(--r-sm)', 
+                        overflow: 'hidden', 
+                        border: activeImg === img ? '2px solid var(--orange)' : '2px solid transparent',
+                        background: 'var(--bg-raised)',
+                        cursor: 'pointer',
+                        padding: 0
+                      }}
+                    >
+                      <img src={img} alt={`Thumbnail ${idx}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Right: Info & Actions */}
