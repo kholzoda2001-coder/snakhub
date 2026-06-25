@@ -59,35 +59,34 @@ export default function Hero() {
       {/* Added transition wrapper */}
       <div style={{ display: 'flex', width: '100%', height: '100%', transition: 'transform 0.5s ease', transform: `translateX(-${currentIndex * 100}%)` }}>
         {banners.map((banner, index) => (
-          <div key={banner.id} style={{ minWidth: '100%', display: 'flex', flexDirection: 'row', flexWrap: 'wrap', position: 'relative', alignItems: 'stretch' }}>
+          <div key={banner.id} style={{ minWidth: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}>
             
-            {/* If there is no title and desc, treat image as full background */}
-            {(!banner.title && !banner.desc) && (
-               <div style={{ position: 'absolute', inset: 0, zIndex: 1 }}>
-                 <img src={banner.img} alt="Banner" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                 <Link href={banner.link || '#shop'} style={{ position: 'absolute', inset: 0, zIndex: 5 }}></Link>
-               </div>
+            {/* ALWAYS treat image as full background */}
+            <div style={{ position: 'absolute', inset: 0, zIndex: 1 }}>
+              <img src={banner.img} alt="Banner" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }} />
+            </div>
+
+            {/* If there is text, add a subtle gradient overlay so text is readable */}
+            {(banner.title || banner.desc || banner.eyebrow) ? (
+              <div style={{ position: 'absolute', inset: 0, zIndex: 2, background: 'linear-gradient(90deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 50%, transparent 100%)' }}></div>
+            ) : (
+              <Link href={banner.link || '#shop'} style={{ position: 'absolute', inset: 0, zIndex: 5 }}></Link>
             )}
 
-            {/* Content overlay (only shows if title or desc exist) */}
+            {/* Content overlay */}
             {(banner.title || banner.desc || banner.eyebrow) && (
-              <>
-                <div className="hero-content" style={{ zIndex: 2 }}>
-                  {banner.eyebrow && <div className="hero-eyebrow">{banner.eyebrow}</div>}
-                  {banner.title && <h1 className="hero-title" dangerouslySetInnerHTML={{ __html: banner.title }}></h1>}
-                  {banner.desc && <p className="hero-desc">{banner.desc}</p>}
-                  <Link href={banner.link || '#shop'} className="hero-cta">
-                    Shop Now
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-                  </Link>
-                </div>
-                <div style={{ flex: '1 1 300px', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px', zIndex: 1 }}>
-                  <img src={banner.img} alt="Banner Image" style={{ maxWidth: '100%', maxHeight: '300px', objectFit: 'contain' }} />
-                </div>
-              </>
+              <div className="hero-content" style={{ position: 'relative', zIndex: 3 }}>
+                {banner.eyebrow && <div className="hero-eyebrow">{banner.eyebrow}</div>}
+                {banner.title && <h1 className="hero-title" dangerouslySetInnerHTML={{ __html: banner.title }}></h1>}
+                {banner.desc && <p className="hero-desc">{banner.desc}</p>}
+                <Link href={banner.link || '#shop'} className="hero-cta">
+                  Shop Now
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                </Link>
+              </div>
             )}
 
-            {banner.badge && <span className="hero-badge" style={{ zIndex: 3 }}>{banner.badge}</span>}
+            {banner.badge && <span className="hero-badge" style={{ zIndex: 4 }}>{banner.badge}</span>}
           </div>
         ))}
       </div>
