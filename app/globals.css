@@ -387,24 +387,24 @@ button{border:none;background:none;cursor:pointer;font-family:var(--font-b);colo
 .hero-eyebrow::before{content:'';width:14px;height:2px;background:var(--green);border-radius:2px;flex-shrink:0}
 .hero-title{
   font-family:var(--font-d);
-  font-size:clamp(24px,5vw,42px);font-weight:900;
+  font-size:clamp(18px,4.5vw,36px);font-weight:900;
   line-height:.93;letter-spacing:.01em;text-transform:uppercase;
-  color:#fff;margin-bottom:6px;
+  color:#fff;margin-bottom:4px;
 }
 .hero-title em{color:var(--orange);font-style:normal;display:block}
 .hero-desc{
-  font-size:11px;color:rgba(255,255,255,.8);
-  line-height:1.4;margin-bottom:12px;max-width:320px;
+  font-size:10px;color:rgba(255,255,255,.8);
+  line-height:1.4;margin-bottom:10px;max-width:320px;
 }
 .hero-cta{
-  display:inline-flex;align-items:center;gap:6px;
+  display:inline-flex;align-items:center;gap:5px;
   background:var(--orange);color:#fff;
-  font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
-  padding:10px 20px;border-radius:50px;transition:var(--trans);
+  font-size:9px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+  padding:6px 14px;border-radius:50px;transition:var(--trans);
   align-self:flex-start;
 }
 .hero-cta:hover{background:var(--orange-light);transform:scale(1.04)}
-.hero-cta svg{width:12px;height:12px}
+.hero-cta svg{width:10px;height:10px}
 .hero-img-default{
   position:absolute;right:-10px;bottom:0;
   width:45%;max-width:240px;z-index:1;
