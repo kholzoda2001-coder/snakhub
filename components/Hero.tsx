@@ -57,9 +57,9 @@ export default function Hero() {
       <div className="hero-grid"></div>
       
       {/* Added transition wrapper */}
-      <div style={{ display: 'flex', width: '100%', height: '100%', transition: 'transform 0.5s ease', transform: `translateX(-${currentIndex * 100}%)` }}>
+      <div style={{ position: 'absolute', inset: 0, display: 'flex', width: '100%', transition: 'transform 0.5s ease', transform: `translateX(-${currentIndex * 100}%)` }}>
         {banners.map((banner, index) => (
-          <div key={banner.id} style={{ minWidth: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}>
+          <div key={banner.id} style={{ minWidth: '100%', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}>
             
             {/* ALWAYS treat image as full background */}
             <div style={{ position: 'absolute', inset: 0, zIndex: 1 }}>
