@@ -23,27 +23,26 @@ export default function ProductDetailPage() {
 
     const fetchProduct = async () => {
       try {
-        const res = await fetch('/api/products');
-        const data = await res.json();
-        const allProducts = Array.isArray(data) && data.length > 0 ? data : products;
+        const [prodRes, allRes] = await Promise.all([
+          fetch(`/api/products/${id}`),
+          fetch('/api/products')
+        ]);
         
-        const found = allProducts.find((p: any) => p.id.toString() === id);
-        if (found) {
+        if (prodRes.ok) {
+          const found = await prodRes.json();
           setProduct(found);
           setActiveImg(found.img);
-          // Get related products from same category
-          const rel = allProducts.filter((p: any) => p.cat === found.cat && p.id !== found.id).slice(0, 4);
-          setRelated(rel.length > 0 ? rel : allProducts.filter((p: any) => p.id !== found.id).slice(0, 4));
+          
+          if (allRes.ok) {
+            const allProducts = await allRes.json();
+            const rel = allProducts.filter((p: any) => p.cat === found.cat && p.id !== found.id).slice(0, 4);
+            setRelated(rel.length > 0 ? rel : allProducts.filter((p: any) => p.id !== found.id).slice(0, 4));
+          }
         } else {
           router.push('/');
         }
       } catch (err) {
-        const found = products.find((p: any) => p.id.toString() === id);
-        if (found) {
-          setProduct(found);
-          setActiveImg(found.img);
-          setRelated(products.filter((p: any) => p.cat === found.cat && p.id !== found.id).slice(0, 4));
-        }
+        router.push('/');
       }
     };
     if (id) fetchProduct();
