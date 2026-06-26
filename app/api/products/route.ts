@@ -18,14 +18,24 @@ export async function GET(req: Request) {
         oldPrice: true,
         tag: true,
         tagLabel: true,
-        img: true,
         isOfferEligible: true,
         stock: true,
         desc: true,
+        img: isAdmin ? true : false,
         images: isAdmin ? true : false,
       }
     });
-    return NextResponse.json(products);
+
+    const formatted = products.map((p: any) => {
+      if (isAdmin) return p;
+      return {
+        ...p,
+        img: `/api/images/${p.id}?index=0`,
+        images: []
+      };
+    });
+
+    return NextResponse.json(formatted);
   } catch (error) {
     return NextResponse.json({ error: "Failed to fetch products" }, { status: 500 });
   }

@@ -8,7 +8,17 @@ export async function GET(req: Request, context: { params: Promise<{ id: string 
       where: { id: parseInt(params.id) }
     });
     if (!product) return NextResponse.json({ error: "Not found" }, { status: 404 });
-    return NextResponse.json(product);
+    
+    // Convert base64 fields to API URLs
+    const formatted = {
+      ...product,
+      img: `/api/images/${product.id}?index=0`,
+      images: Array.isArray(product.images) && product.images.length > 0 
+        ? product.images.map((_: any, i: number) => `/api/images/${product.id}?index=${i}`)
+        : [`/api/images/${product.id}?index=0`]
+    };
+
+    return NextResponse.json(formatted);
   } catch (error) {
     return NextResponse.json({ error: "Failed to fetch product" }, { status: 500 });
   }
