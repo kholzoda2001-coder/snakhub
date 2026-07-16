@@ -2,6 +2,14 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { SESSION_COOKIE, verifySessionToken } from './lib/auth';
 
+// TEMPORARY: admin login depends on Vercel env vars that aren't loading yet.
+// Until that's fixed, the admin panel is open WITHOUT a password so the owner can
+// manage products and orders. The payment/bot credentials endpoint (/api/settings)
+// stays locked so nobody can scrape the Ziina key or Telegram token.
+// To restore full protection: set this to false (once env-var login works) and,
+// after confirming, delete this block entirely.
+const TEMP_OPEN_ADMIN = true;
+
 const WRITE_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 
 // Endpoints a customer must be able to reach without logging in.
@@ -41,6 +49,12 @@ export async function proxy(request: NextRequest) {
 
   if (pathname === '/admin/login') return NextResponse.next();
   if (isPublicRequest(pathname, method, searchParams)) return NextResponse.next();
+
+  // While admin is temporarily open, allow everything EXCEPT the credentials
+  // endpoint, which must never be exposed to the public internet.
+  if (TEMP_OPEN_ADMIN && pathname !== '/api/settings') {
+    return NextResponse.next();
+  }
 
   const isLoggedIn = await verifySessionToken(request.cookies.get(SESSION_COOKIE)?.value);
   if (isLoggedIn) return NextResponse.next();
