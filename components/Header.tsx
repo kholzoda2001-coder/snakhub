@@ -2,7 +2,7 @@
 import React from 'react';
 import Link from 'next/link';
 
-export default function Header({ toggleTheme, toggleCart, toggleMenu, cartCount }: any) {
+export default function Header({ toggleCart, toggleMenu, cartCount }: any) {
   return (
     <>
       <header className="site-header">
@@ -12,13 +12,11 @@ export default function Header({ toggleTheme, toggleCart, toggleMenu, cartCount 
           </button>
           <div className="brand-logo">
             <Link href="/" style={{ display: 'block', textDecoration: 'none' }}>
-              <img className="logo-light" src="/logo.png" alt="Snack Hub" style={{ height: '38px', width: 'auto', objectFit: 'contain' }} />
-              <img className="logo-dark" src="/logo-dark.png" alt="Snack Hub" style={{ height: '38px', width: 'auto', objectFit: 'contain' }} />
+              <img src="/logo.png" alt="Snack Hub" style={{ height: '38px', width: 'auto', objectFit: 'contain' }} />
             </Link>
           </div>
         </div>
         <div className="header-right">
-          <button className="theme-btn" onClick={toggleTheme} aria-label="Toggle theme" title="Toggle theme">🌙</button>
           <button className="icon-btn" aria-label="Search">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
           </button>
