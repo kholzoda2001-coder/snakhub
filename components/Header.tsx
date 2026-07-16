@@ -5,9 +5,6 @@ import Link from 'next/link';
 export default function Header({ toggleTheme, toggleCart, toggleMenu, cartCount }: any) {
   return (
     <>
-      <div className="delivery-banner">
-        🚀 FREE DELIVERY on orders over <span className="hl">300 AED</span> — Same day, UAE-wide!
-      </div>
       <header className="site-header">
         <div className="header-left">
           <button className="menu-btn" onClick={toggleMenu} aria-label="Menu">
