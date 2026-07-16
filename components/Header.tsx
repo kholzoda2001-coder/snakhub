@@ -6,7 +6,6 @@ export default function Header({ toggleTheme, toggleCart, toggleMenu, cartCount 
   return (
     <>
       <div className="delivery-banner">
-        <span className="live-dot"></span>
         🚀 FREE DELIVERY on orders over <span className="hl">300 AED</span> — Same day, UAE-wide!
       </div>
       <header className="site-header">
