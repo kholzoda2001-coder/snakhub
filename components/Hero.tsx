@@ -40,7 +40,13 @@ export default function Hero({ banners: bannersProp = [] }: { banners?: any[] })
   const currentBanner = banners[currentIndex];
 
   return (
-    <section className="hero" id="home" style={{ position: 'relative', overflow: 'hidden' }}>
+    <section
+      className="hero"
+      id="home"
+      // Match the banner's own aspect ratio so the whole image shows without
+      // being cropped top/bottom. minHeight:0 lets the ratio drive the height.
+      style={{ position: 'relative', overflow: 'hidden', aspectRatio: '1024 / 478', minHeight: 0 }}
+    >
       <div className="hero-glow"></div>
       <div className="hero-grid"></div>
       
@@ -51,7 +57,7 @@ export default function Hero({ banners: bannersProp = [] }: { banners?: any[] })
             
             {/* ALWAYS treat image as full background */}
             <div style={{ position: 'absolute', inset: 0, zIndex: 1 }}>
-              <img src={banner.img} alt="Banner" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }} />
+              <img src={banner.img} alt="Banner" style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center' }} />
             </div>
 
             {/* If there is text, add a subtle gradient overlay so text is readable */}
