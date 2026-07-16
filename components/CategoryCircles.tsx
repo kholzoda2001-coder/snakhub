@@ -1,17 +1,7 @@
-'use client';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
 
-export default function CategoryCircles() {
-  const [categories, setCategories] = useState<any[]>([]);
-
-  useEffect(() => {
-    fetch('/api/categories')
-      .then(res => res.json())
-      .then(data => setCategories(data))
-      .catch(err => console.error(err));
-  }, []);
-
+export default function CategoryCircles({ categories = [] }: { categories?: any[] }) {
   if (categories.length === 0) return null;
 
   return (

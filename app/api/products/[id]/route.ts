@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '../../../../lib/prisma';
+import { publicImageSrc } from '../../../../lib/productImages';
 
 export async function GET(req: Request, context: { params: Promise<{ id: string }> }) {
   try {
@@ -8,14 +9,15 @@ export async function GET(req: Request, context: { params: Promise<{ id: string 
       where: { id: parseInt(params.id) }
     });
     if (!product) return NextResponse.json({ error: "Not found" }, { status: 404 });
-    
-    // Convert base64 fields to API URLs
+
+    // External URLs go straight to the browser; base64 is served by /api/images.
+    const gallery = Array.isArray(product.images) ? (product.images as string[]) : [];
     const formatted = {
       ...product,
-      img: `/api/images/${product.id}?index=0`,
-      images: Array.isArray(product.images) && product.images.length > 0 
-        ? product.images.map((_: any, i: number) => `/api/images/${product.id}?index=${i}`)
-        : [`/api/images/${product.id}?index=0`]
+      img: publicImageSrc(product.id, product.img),
+      images: gallery.length > 0
+        ? gallery.map((stored, i) => publicImageSrc(product.id, stored, i))
+        : [publicImageSrc(product.id, product.img)]
     };
 
     return NextResponse.json(formatted);

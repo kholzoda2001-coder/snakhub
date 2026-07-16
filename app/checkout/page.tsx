@@ -49,11 +49,11 @@ export default function CheckoutPage() {
       const res = await fetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        // Only ids and quantities matter here — the server prices the order itself.
         body: JSON.stringify({
           ...formData,
           paymentMethod,
-          items: cart,
-          total: totals.finalTotal
+          items: cart.map(item => ({ id: item.id, qty: item.qty }))
         })
       });
 

@@ -1,57 +1,40 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '../../../../lib/prisma';
-import { sendTelegramNotification } from '../../../../lib/telegram';
+import { markOrderFailed, markOrderPaid } from '../../../../lib/orders';
+import { fetchPaymentIntent, isFailedStatus, isPaidStatus } from '../../../../lib/ziina';
+
+export const dynamic = 'force-dynamic';
 
 export async function POST(req: Request) {
   try {
     const payload = await req.json();
 
-    if (payload.event === 'payment_intent.status.updated' && payload.data) {
-      const intentId = payload.data.id;
-      const status = payload.data.status;
-      
-      await sendTelegramNotification(`🔧 <b>DEBUG Webhook:</b> Intent ${intentId} updated to ${status}`);
+    if (payload?.event !== 'payment_intent.status.updated' || !payload?.data?.id) {
+      return NextResponse.json({ received: true });
+    }
 
-      if (!intentId) return NextResponse.json({ error: "No intent ID" }, { status: 400 });
+    const intentId = String(payload.data.id);
 
-      if (status === 'COMPLETED' || status === 'PAID') {
-        const updatedOrders = await prisma.order.findMany({
-          where: { paymentIntentId: intentId }
-        });
+    // Anyone can post here, so the payload is only a hint: ask Ziina directly
+    // what this intent's status really is before touching an order.
+    const intent = await fetchPaymentIntent(intentId);
+    if (!intent) {
+      return NextResponse.json({ error: 'Could not verify payment intent' }, { status: 502 });
+    }
 
-        await prisma.order.updateMany({
-          where: { paymentIntentId: intentId },
-          data: { status: 'Paid' }
-        });
+    const orders = await prisma.order.findMany({ where: { paymentIntentId: intentId } });
 
-        for (const order of updatedOrders) {
-          const items = typeof order.items === 'string' ? JSON.parse(order.items) : order.items;
-          // @ts-ignore
-          const itemDetails = Array.isArray(items) ? items.map((i: any) => `${i.quantity}x ${i.name}`).join('\n') : 'Items';
-          
-          const message = `✅ <b>Online Payment Received!</b>
-          
-👤 <b>Name:</b> ${order.name}
-📞 <b>Phone:</b> ${order.phone}
-📍 <b>Address:</b> ${order.address}
-💰 <b>Total:</b> ${order.total} AED
-🛒 <b>Items:</b>
-${itemDetails}`;
-          
-          await sendTelegramNotification(message);
-        }
-      } else if (status === 'CANCELED' || status === 'FAILED') {
-        await prisma.order.updateMany({
-          where: { paymentIntentId: intentId },
-          data: { status: 'Failed' }
-        });
+    for (const order of orders) {
+      if (isPaidStatus(intent.status)) {
+        await markOrderPaid(order);
+      } else if (isFailedStatus(intent.status)) {
+        await markOrderFailed(order);
       }
     }
 
     return NextResponse.json({ received: true });
-  } catch (error: any) {
-    await sendTelegramNotification(`🔧 <b>DEBUG Webhook Error:</b> ${error?.message || 'Unknown'}`);
+  } catch (error) {
     console.error('Webhook Error:', error);
-    return NextResponse.json({ error: "Webhook handler failed" }, { status: 500 });
+    return NextResponse.json({ error: 'Webhook handler failed' }, { status: 500 });
   }
 }

@@ -2,21 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 
-export default function Hero() {
-  const [banners, setBanners] = useState<any[]>([]);
+export default function Hero({ banners: bannersProp = [] }: { banners?: any[] }) {
   const [currentIndex, setCurrentIndex] = useState(0);
-
-  useEffect(() => {
-    fetch('/api/banners')
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data)) {
-          const activeBanners = data.filter(b => b.isActive);
-          if (activeBanners.length > 0) setBanners(activeBanners);
-        }
-      })
-      .catch(err => console.error(err));
-  }, []);
+  const banners = bannersProp.filter((b) => b.isActive);
 
   useEffect(() => {
     if (banners.length <= 1) return;

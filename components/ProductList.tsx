@@ -1,6 +1,5 @@
 'use client';
 import React from 'react';
-import { products } from '../data/products';
 import Link from 'next/link';
 
 export default function ProductList({ productsData, activeCategory, searchQuery, addToCart, toggleWishlist, wishlist, title, categorySlug }: any) {

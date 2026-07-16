@@ -4,13 +4,18 @@ import Link from 'next/link';
 
 export default function SideNav({ isMenuOpen, toggleMenu }: any) {
   const [categories, setCategories] = React.useState<any[]>([]);
+  const loadedRef = React.useRef(false);
 
+  // The menu is hidden on first paint, so its categories are fetched only once
+  // the shopper actually opens it.
   React.useEffect(() => {
+    if (!isMenuOpen || loadedRef.current) return;
+    loadedRef.current = true;
     fetch('/api/categories')
       .then(res => res.json())
-      .then(data => setCategories(data))
+      .then(data => setCategories(Array.isArray(data) ? data : []))
       .catch(err => console.error(err));
-  }, []);
+  }, [isMenuOpen]);
 
   // Lock body scroll when sidebar is open
   React.useEffect(() => {

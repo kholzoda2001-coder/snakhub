@@ -3,6 +3,17 @@ import { prisma } from '../../../lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
+// These hold live payment and bot credentials. Both handlers are admin-only
+// (enforced in proxy.ts); the shop reads what it needs from /api/checkout-config.
+const ALLOWED_KEYS = new Set([
+  'ziina_api_key',
+  'ziina_enabled',
+  'ziina_test_mode',
+  'telegram_bot_token',
+  'telegram_chat_id',
+  'track_stock'
+]);
+
 export async function GET() {
   try {
     const settings = await prisma.settings.findMany();
@@ -24,6 +35,7 @@ export async function POST(req: Request) {
     
     // Body is an object of key: value
     for (const [key, value] of Object.entries(body)) {
+      if (!ALLOWED_KEYS.has(key)) continue;
       await prisma.settings.upsert({
         where: { key },
         update: { value: String(value) },

@@ -124,7 +124,7 @@ export default function AdminProducts() {
             tag: p.tag || null,
             tagLabel: p.tagLabel || null,
             img: p.img,
-            images: p.images || [p.img],
+            images: 'images' in p && p.images ? p.images : [p.img],
             desc: p.desc || '',
             isOfferEligible: true
           })

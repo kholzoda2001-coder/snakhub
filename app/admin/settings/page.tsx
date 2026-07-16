@@ -9,7 +9,8 @@ export default function AdminSettings() {
     ziina_enabled: 'true',
     ziina_test_mode: 'true',
     telegram_bot_token: '',
-    telegram_chat_id: ''
+    telegram_chat_id: '',
+    track_stock: 'false'
   });
 
   useEffect(() => {
@@ -134,8 +135,30 @@ export default function AdminSettings() {
 
           <hr style={{ border: 'none', borderTop: '1px solid var(--admin-border)' }} />
 
-          <button 
-            type="submit" 
+          <div>
+            <h2 style={{ fontSize: '18px', fontWeight: 800, marginBottom: '10px' }}>Inventory 📦</h2>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <input
+                type="checkbox"
+                id="trackStock"
+                checked={settings.track_stock === 'true'}
+                onChange={e => setSettings({ ...settings, track_stock: e.target.checked ? 'true' : 'false' })}
+                style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+              />
+              <label htmlFor="trackStock" style={{ fontSize: '14px', fontWeight: 700, cursor: 'pointer' }}>
+                Track stock levels
+              </label>
+            </div>
+            <p style={{ fontSize: '13px', color: 'var(--orange)', marginTop: '8px' }}>
+              ⚠️ When on, every order reduces the product&apos;s stock and customers cannot order more than you have.
+              Set a real stock number on every product before turning this on, otherwise orders will be rejected.
+            </p>
+          </div>
+
+          <hr style={{ border: 'none', borderTop: '1px solid var(--admin-border)' }} />
+
+          <button
+            type="submit"
             disabled={saving}
             style={{ 
               alignSelf: 'flex-start', padding: '12px 24px', background: 'var(--admin-primary)', color: '#fff', 

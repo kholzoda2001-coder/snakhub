@@ -36,7 +36,7 @@ function SuccessContent() {
 
   const isPaid = order?.status === 'Paid';
   const isFailed = order?.status === 'Failed';
-  const isCOD = order?.status === 'Pending' || (!order?.paymentIntentId && !isPaid);
+  const isCOD = order?.status === 'Pending' || (!order?.isOnline && !isPaid);
 
   return (
     <div style={{ paddingTop: '40px', minHeight: '100vh', background: 'var(--bg-main)', display: 'flex', justifyContent: 'center', paddingBottom: '60px' }}>

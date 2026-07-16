@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { calculateTotals } from '../lib/pricing';
 
 type CartItem = {
   id: number;
@@ -42,17 +43,30 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  // Load from local storage if needed (optional, keeping it simple for now)
-  useEffect(() => {
-    const saved = localStorage.getItem('fuel_cart');
-    if (saved) {
-      try { setCart(JSON.parse(saved)); } catch (e) {}
-    }
-  }, []);
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
+    const savedCart = localStorage.getItem('fuel_cart');
+    if (savedCart) {
+      try { setCart(JSON.parse(savedCart)); } catch (e) {}
+    }
+    const savedWishlist = localStorage.getItem('fuel_wishlist');
+    if (savedWishlist) {
+      try { setWishlist(new Set(JSON.parse(savedWishlist))); } catch (e) {}
+    }
+    setHydrated(true);
+  }, []);
+
+  // Guarded so the first render doesn't wipe storage before it has been read.
+  useEffect(() => {
+    if (!hydrated) return;
     localStorage.setItem('fuel_cart', JSON.stringify(cart));
-  }, [cart]);
+  }, [cart, hydrated]);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    localStorage.setItem('fuel_wishlist', JSON.stringify([...wishlist]));
+  }, [wishlist, hydrated]);
 
   const addToCart = (product: any, openCart: boolean = true) => {
     setCart(prev => {
@@ -85,42 +99,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const toggleCart = () => setIsCartOpen(!isCartOpen);
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
-  // --- Calculate Totals ---
-  const cartTotalQty = cart.reduce((acc, item) => acc + item.qty, 0);
-  const subtotal = cart.reduce((acc, item) => acc + item.price * item.qty, 0);
-
-  let discount = 0;
-  let shipping = 20;
-
-  // Calculate eligible quantity for the offer
-  const eligibleQty = cart.reduce((acc, item) => {
-    // If isOfferEligible is undefined, we assume true by default so old products don't break.
-    const isEligible = item.isOfferEligible !== false;
-    return isEligible ? acc + item.qty : acc;
-  }, 0);
-
-  const eligibleSubtotal = cart.reduce((acc, item) => {
-    const isEligible = item.isOfferEligible !== false;
-    return isEligible ? acc + item.price * item.qty : acc;
-  }, 0);
-
-  if (eligibleQty >= 2) {
-    discount = eligibleSubtotal * 0.05; // 5% discount on eligible items
-  }
-
-  if (eligibleQty >= 3) {
-    shipping = 0; // Free shipping if 3+ eligible cartons
-  }
-
-  const finalTotal = subtotal - discount + shipping;
-
-  const totals = {
-    cartTotalQty,
-    subtotal,
-    discount,
-    shipping,
-    finalTotal
-  };
+  const totals = calculateTotals(cart);
 
   return (
     <CartContext.Provider value={{

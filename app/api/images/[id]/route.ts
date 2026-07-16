@@ -7,19 +7,23 @@ export async function GET(req: Request, context: { params: Promise<{ id: string 
     const { searchParams } = new URL(req.url);
     const index = parseInt(searchParams.get('index') || '0');
 
+    const id = parseInt(params.id);
+    if (isNaN(id) || isNaN(index) || index < 0) return new NextResponse('Not found', { status: 404 });
+
+    // Only the column actually needed is read — these are LongText blobs.
     const product = await prisma.product.findUnique({
-      where: { id: parseInt(params.id) },
-      select: { img: true, images: true }
+      where: { id },
+      select: index === 0 ? { img: true } : { images: true }
     });
 
     if (!product) return new NextResponse('Not found', { status: 404 });
 
     let base64String = '';
     if (index === 0) {
-      base64String = product.img;
+      base64String = (product as { img: string }).img;
     } else {
-      const images = product.images as string[];
-      if (images && images.length > index) {
+      const images = (product as { images: unknown }).images as string[];
+      if (Array.isArray(images) && images.length > index) {
         base64String = images[index];
       } else {
         return new NextResponse('Not found', { status: 404 });

@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '../../../lib/prisma';
-import { sendTelegramNotification } from '../../../lib/telegram';
+import { buildOrderMessage, sendTelegramNotification } from '../../../lib/telegram';
+import { calculateTotals } from '../../../lib/pricing';
+import { isStockTrackingOn, type OrderItem } from '../../../lib/orders';
+import { createPaymentIntent, getZiinaConfig } from '../../../lib/ziina';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,99 +21,136 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { name, phone, address, items, total, paymentMethod } = body;
-    
-    const newOrder = await prisma.order.create({
-      data: {
-        name,
-        phone,
-        address,
-        items,
-        total,
-        status: paymentMethod === 'online' ? 'Pending Payment' : 'Pending'
+    const { name, phone, city, address, items, paymentMethod } = body;
+
+    const customerName = String(name ?? '').trim();
+    const customerPhone = String(phone ?? '').trim();
+    const streetAddress = String(address ?? '').trim();
+    const customerCity = String(city ?? '').trim();
+
+    if (!customerName || !customerPhone || !streetAddress) {
+      return NextResponse.json({ error: 'Name, phone and address are required.' }, { status: 400 });
+    }
+
+    // The emirate is picked in a separate field but the courier needs it on one line.
+    const fullAddress = customerCity ? `${streetAddress}, ${customerCity}` : streetAddress;
+
+    // Merge duplicate lines and reject anything that isn't a real quantity.
+    const requestedQty = new Map<number, number>();
+    for (const item of Array.isArray(items) ? items : []) {
+      const id = Number(item?.id);
+      const qty = Math.floor(Number(item?.qty ?? item?.quantity));
+      if (!Number.isInteger(id) || !Number.isFinite(qty) || qty < 1 || qty > 999) {
+        return NextResponse.json({ error: 'Your cart contains an invalid item.' }, { status: 400 });
       }
+      requestedQty.set(id, (requestedQty.get(id) ?? 0) + qty);
+    }
+
+    if (requestedQty.size === 0) {
+      return NextResponse.json({ error: 'Your cart is empty.' }, { status: 400 });
+    }
+
+    // Prices, names and offer flags come from the database — never from the browser.
+    const products = await prisma.product.findMany({
+      where: { id: { in: [...requestedQty.keys()] } },
+      select: { id: true, name: true, price: true, stock: true, catLabel: true, isOfferEligible: true }
     });
 
-    if (paymentMethod === 'online') {
-      const setting = await prisma.settings.findUnique({ where: { key: 'ziina_api_key' } });
-      const testModeSetting = await prisma.settings.findUnique({ where: { key: 'ziina_test_mode' } });
-      const enabledSetting = await prisma.settings.findUnique({ where: { key: 'ziina_enabled' } });
-      
-      const apiKey = setting?.value || process.env.ZIINA_API_KEY;
-      const isTestMode = testModeSetting ? testModeSetting.value === 'true' : true;
-      const isZiinaEnabled = enabledSetting ? enabledSetting.value === 'true' : true;
+    if (products.length !== requestedQty.size) {
+      return NextResponse.json({ error: 'Some products are no longer available. Please refresh your cart.' }, { status: 400 });
+    }
 
-      if (!apiKey || !isZiinaEnabled) {
+    const orderItems: OrderItem[] = products.map((product) => ({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      qty: requestedQty.get(product.id)!,
+      catLabel: product.catLabel,
+      isOfferEligible: product.isOfferEligible
+    }));
+
+    const trackStock = await isStockTrackingOn();
+    if (trackStock) {
+      const shortItems = orderItems.filter((item) => {
+        const product = products.find((p) => p.id === item.id)!;
+        return product.stock < item.qty;
+      });
+      if (shortItems.length > 0) {
+        return NextResponse.json(
+          { error: `Out of stock: ${shortItems.map((i) => i.name).join(', ')}` },
+          { status: 409 }
+        );
+      }
+    }
+
+    const totals = calculateTotals(orderItems);
+    const isOnline = paymentMethod === 'online';
+
+    // Reserving stock and creating the order must succeed or fail together.
+    const newOrder = await prisma.$transaction(async (tx) => {
+      if (trackStock) {
+        for (const item of orderItems) {
+          // The stock condition lives in the WHERE clause so two shoppers
+          // checking out at once can't oversell the last unit.
+          const reserved = await tx.product.updateMany({
+            where: { id: item.id, stock: { gte: item.qty } },
+            data: { stock: { decrement: item.qty } }
+          });
+          if (reserved.count === 0) throw new Error(`OUT_OF_STOCK:${item.name}`);
+        }
+      }
+
+      return tx.order.create({
+        data: {
+          name: customerName,
+          phone: customerPhone,
+          address: fullAddress,
+          items: orderItems,
+          total: totals.finalTotal,
+          status: isOnline ? 'Pending Payment' : 'Pending'
+        }
+      });
+    });
+
+    if (isOnline) {
+      const { apiKey, isTestMode, isEnabled } = await getZiinaConfig();
+
+      if (!apiKey || !isEnabled) {
         return NextResponse.json({ error: 'Online payment is currently unavailable. Please use COD.' }, { status: 400 });
       }
 
-      // Construct absolute URL for Ziina redirect
       const protocol = req.headers.get('x-forwarded-proto') || 'http';
       const host = req.headers.get('host') || 'localhost:3000';
       const domain = `${protocol}://${host}`;
 
-      const ziinaPayload = {
-        amount: Math.round(total * 100), // convert to fils
+      const intent = await createPaymentIntent({
+        amount: Math.round(totals.finalTotal * 100), // fils
         currency_code: 'AED',
         success_url: `${domain}/checkout/success?order_id=${newOrder.id}`,
         cancel_url: `${domain}/checkout/cancel?order_id=${newOrder.id}`,
         test: isTestMode
-      };
+      }, apiKey);
 
-      const ziinaRes = await fetch('https://api-v2.ziina.com/api/payment_intent', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`
-        },
-        body: JSON.stringify(ziinaPayload)
-      });
-
-      if (!ziinaRes.ok) {
-        console.error('Ziina API Error:', await ziinaRes.text());
-        return NextResponse.json({ error: 'Payment gateway error. Please use COD or try again.' }, { status: 500 });
+      if (!intent?.id) {
+        return NextResponse.json({ error: 'Payment gateway error. Please use COD or try again.' }, { status: 502 });
       }
 
-      const ziinaData = await ziinaRes.json();
-      
-      // Update order with paymentIntentId
       await prisma.order.update({
         where: { id: newOrder.id },
-        data: { paymentIntentId: ziinaData.id }
+        data: { paymentIntentId: intent.id }
       });
-      
-      if (paymentMethod !== 'online') {
-        const itemDetails = items.map((i: any) => `${i.quantity}x ${i.name}`).join('\n');
-        const message = `🔔 <b>New COD Order!</b>
-        
-👤 <b>Name:</b> ${name}
-📞 <b>Phone:</b> ${phone}
-📍 <b>Address:</b> ${address}
-💰 <b>Total:</b> ${total} AED
-🛒 <b>Items:</b>
-${itemDetails}`;
-        
-        await sendTelegramNotification(message);
-      }
-      
-      return NextResponse.json({ ...newOrder, redirect_url: ziinaData.redirect_url }, { status: 201 });
+
+      // The shop is notified once the payment actually clears, not now.
+      return NextResponse.json({ ...newOrder, redirect_url: intent.redirect_url }, { status: 201 });
     }
-    
-    // COD notification
-    const itemDetails = items.map((i: any) => `${i.quantity}x ${i.name}`).join('\n');
-    const message = `🔔 <b>New COD Order!</b>
-    
-👤 <b>Name:</b> ${name}
-📞 <b>Phone:</b> ${phone}
-📍 <b>Address:</b> ${address}
-💰 <b>Total:</b> ${total} AED
-🛒 <b>Items:</b>
-${itemDetails}`;
-    
-    await sendTelegramNotification(message);
+
+    await sendTelegramNotification(buildOrderMessage('🔔 <b>New COD Order!</b>', newOrder));
 
     return NextResponse.json(newOrder, { status: 201 });
-  } catch (error) {
+  } catch (error: any) {
+    if (typeof error?.message === 'string' && error.message.startsWith('OUT_OF_STOCK:')) {
+      return NextResponse.json({ error: `Out of stock: ${error.message.split(':')[1]}` }, { status: 409 });
+    }
     console.error('Error creating order:', error);
     return NextResponse.json({ error: 'Failed to create order' }, { status: 500 });
   }
