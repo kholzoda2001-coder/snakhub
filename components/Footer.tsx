@@ -15,7 +15,10 @@ export default function Footer() {
   }, []);
   return (
     <footer className="site-footer">
-      <div className="ft-brand"><img src="/logo.jpg" alt="Snack Hub" /></div>
+      <div className="ft-brand">
+        <img className="logo-light" src="/logo.png" alt="Snack Hub" />
+        <img className="logo-dark" src="/logo-dark.png" alt="Snack Hub" />
+      </div>
       <div className="ft-tag">Your premium snacks & energy destination in the UAE. Fuel your day, the right way.</div>
       
       <div className="ft-links">

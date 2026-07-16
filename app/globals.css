@@ -810,6 +810,13 @@ button{border:none;background:none;cursor:pointer;font-family:var(--font-b);colo
 }
 .ft-brand{margin-bottom:12px;display:flex;align-items:center;height:60px}
 .ft-brand img { height: 100%; max-height: 56px; width: auto; object-fit: contain; display: block; filter: brightness(1); padding: 2px 0; }
+
+/* Transparent logo: black-text version for light theme, white-text for dark.
+   Selectors use img.* so they outweigh the .brand-logo/.panel-logo/.ft-brand img
+   display rules above. */
+img.logo-dark { display: none; }
+[data-theme="dark"] img.logo-light { display: none; }
+[data-theme="dark"] img.logo-dark { display: block; }
 .ft-tag{font-size:13px;color:var(--text-secondary);margin-bottom:18px}
 .ft-links{display:flex;flex-wrap:wrap;gap:4px 14px;margin-bottom:18px}
 .ft-links a{font-size:13px;color:var(--text-secondary);transition:color var(--trans)}
