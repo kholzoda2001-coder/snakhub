@@ -2,6 +2,16 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 
+// The built-in info/legal pages that always live in the footer.
+const STATIC_LINKS = [
+  { slug: 'about', title: 'About Us' },
+  { slug: 'contact', title: 'Contact' },
+  { slug: 'faq', title: 'FAQ' },
+  { slug: 'privacy', title: 'Privacy Policy' },
+  { slug: 'terms', title: 'Terms & Conditions' },
+];
+const STATIC_SLUGS = new Set(STATIC_LINKS.map((l) => l.slug));
+
 export default function Footer() {
   const [pages, setPages] = useState<any[]>([]);
 
@@ -9,7 +19,10 @@ export default function Footer() {
     fetch('/api/pages')
       .then(res => res.json())
       .then(data => {
-        if (Array.isArray(data)) setPages(data);
+        if (Array.isArray(data)) {
+          // Drop any admin page that would duplicate a built-in link.
+          setPages(data.filter((p: any) => !STATIC_SLUGS.has(p.slug)));
+        }
       })
       .catch(err => console.error(err));
   }, []);
@@ -19,11 +32,12 @@ export default function Footer() {
       <div className="ft-tag">Your premium snacks & energy destination in the UAE. Fuel your day, the right way.</div>
       
       <div className="ft-links">
+        {STATIC_LINKS.map(link => (
+          <Link key={link.slug} href={`/${link.slug}`}>{link.title}</Link>
+        ))}
         {pages.map(page => (
           <Link key={page.id} href={`/${page.slug}`}>{page.title}</Link>
         ))}
-        <Link href="/contact">Contact Support</Link>
-        <Link href="/faq">FAQ</Link>
       </div>
 
       <div className="ft-socials">
