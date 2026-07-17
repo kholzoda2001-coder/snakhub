@@ -3,7 +3,7 @@ import "./globals.css";
 import Providers from "../components/Providers";
 
 export const metadata: Metadata = {
-  title: "FUEL STORE | Snacks · Energy · Protein",
+  title: "Snack Hub | Snacks · Energy · Protein",
   description: "Your premium snacks & energy destination in the UAE.",
 };
 

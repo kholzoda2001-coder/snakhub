@@ -65,7 +65,7 @@ function SuccessContent() {
               ? 'Unfortunately, your online payment could not be processed. Please try again or contact support.'
               : isPaid 
                 ? 'Thank you for your purchase! Your online payment was successful. Our team will contact you shortly.'
-                : 'Thank you for choosing Fuel Store! Your order has been successfully placed. Our team will contact you shortly.'}
+                : 'Thank you for choosing Snack Hub! Your order has been successfully placed. Our team will contact you shortly.'}
           </p>
           
           {!isFailed && (

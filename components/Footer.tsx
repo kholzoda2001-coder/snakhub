@@ -59,7 +59,7 @@ export default function Footer() {
       </div>
 
       <div className="ft-copy">
-        © {new Date().getFullYear()} Fuel Store AE. All rights reserved.<br />
+        © {new Date().getFullYear()} Snack Hub. All rights reserved.<br />
         Delivering high energy across Dubai & the UAE.
       </div>
     </footer>

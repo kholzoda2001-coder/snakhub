@@ -76,7 +76,7 @@ export default function SideNav({ isMenuOpen, toggleMenu }: any) {
           </a>
         </div>
         <div className="side-nav-footer">
-          © 2026 Fuel Store AE. All rights reserved.
+          © {new Date().getFullYear()} Snack Hub. All rights reserved.
         </div>
       </nav>
     </>
