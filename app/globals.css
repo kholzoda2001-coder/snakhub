@@ -802,6 +802,14 @@ button{border:none;background:none;cursor:pointer;font-family:var(--font-b);colo
 .ft-brand{margin-bottom:12px;display:flex;align-items:center;height:60px}
 .ft-brand img { height: 100%; max-height: 56px; width: auto; object-fit: contain; display: block; filter: brightness(1); padding: 2px 0; }
 .ft-tag{font-size:13px;color:var(--text-secondary);margin-bottom:18px}
+/* Admin-editable info/legal pages rendered by /[slug] */
+.dynamic-content p{margin-bottom:16px}
+.dynamic-content h2,.dynamic-content h3{color:var(--text-primary);margin:24px 0 10px;font-size:18px;font-weight:800}
+.dynamic-content ul,.dynamic-content ol{margin:0 0 16px;padding-left:20px}
+.dynamic-content li{margin-bottom:8px}
+.dynamic-content strong{color:var(--text-primary)}
+.dynamic-content a{color:var(--orange)}
+
 .ft-links{display:flex;flex-wrap:wrap;gap:4px 14px;margin-bottom:18px}
 .ft-links a{font-size:13px;color:var(--text-secondary);transition:color var(--trans)}
 .ft-links a:hover{color:var(--orange)}
