@@ -8,7 +8,7 @@ const STATIC_LINKS = [
   { slug: 'contact', title: 'Contact' },
   { slug: 'faq', title: 'FAQ' },
   { slug: 'privacy', title: 'Privacy Policy' },
-  { slug: 'terms', title: 'Terms & Conditions' },
+  { slug: 'terms', title: 'Terms of Sale' },
 ];
 const STATIC_SLUGS = new Set(STATIC_LINKS.map((l) => l.slug));
 
