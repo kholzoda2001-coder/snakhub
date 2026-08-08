@@ -1,6 +1,7 @@
 'use client';
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function SideNav({ isMenuOpen, toggleMenu }: any) {
   const [categories, setCategories] = React.useState<any[]>([]);
@@ -42,37 +43,33 @@ export default function SideNav({ isMenuOpen, toggleMenu }: any) {
       <nav className={`side-nav ${isMenuOpen ? 'active' : ''}`}>
         <div className="panel-header">
           <div className="panel-logo">
-            <img src="/logo.png" alt="Snack Hub" style={{ height: '36px', width: 'auto', objectFit: 'contain' }} />
+            <Image src="/logo.png" alt="Snack Hub" width={708} height={156} sizes="170px" style={{ height: '36px', width: 'auto', objectFit: 'contain' }} />
           </div>
           <button className="close-x" onClick={toggleMenu} aria-label="Close menu">✕</button>
         </div>
         <div className="side-links">
           <Link href="/" onClick={toggleMenu}>
-            🏠 <span>Home</span>
+            <span className="snl-icon">🏠</span> <span>Home</span>
           </Link>
-          
-          <div style={{ padding: '12px 18px 4px', fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-            Categories
-          </div>
-          
+
+          <div className="side-group-label">Categories</div>
+
           {categories.map(c => (
             <Link key={c.id} href={`/category/${c.slug}`} onClick={toggleMenu}>
-              {c.icon || '📦'} <span>{c.name}</span>
+              <span className="snl-icon">{c.icon || '📦'}</span> <span>{c.name}</span>
             </Link>
           ))}
 
-          <div style={{ padding: '12px 18px 4px', fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '8px' }}>
-            My Account
-          </div>
+          <div className="side-group-label">My Account</div>
 
           <Link href="/wishlist" onClick={toggleMenu}>
-            ❤️ <span>My Wishlist</span>
+            <span className="snl-icon">❤️</span> <span>My Wishlist</span>
           </Link>
           <a href="#" onClick={toggleMenu}>
-            📦 <span>My Orders</span>
+            <span className="snl-icon">📦</span> <span>My Orders</span>
           </a>
           <a href="#" onClick={toggleMenu}>
-            🎧 <span>Support / Chat</span>
+            <span className="snl-icon">🎧</span> <span>Support / Chat</span>
           </a>
         </div>
         <div className="side-nav-footer">

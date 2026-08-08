@@ -1,6 +1,7 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 // The built-in info/legal pages that always live in the footer.
 const STATIC_LINKS = [
@@ -28,7 +29,7 @@ export default function Footer() {
   }, []);
   return (
     <footer className="site-footer">
-      <div className="ft-brand"><img src="/logo.png" alt="Snack Hub" /></div>
+      <div className="ft-brand"><Image src="/logo.png" alt="Snack Hub" width={708} height={156} sizes="260px" /></div>
       <div className="ft-tag">Your premium snacks & energy destination in the UAE. Fuel your day, the right way.</div>
       
       <div className="ft-links">

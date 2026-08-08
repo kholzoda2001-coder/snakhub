@@ -1,8 +1,48 @@
 'use client';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
+
+// How far down the page the shrink is allowed to kick in, and how much
+// movement counts as a real scroll rather than trackpad/touch jitter.
+const SHRINK_AFTER = 60;
+const DIRECTION_THRESHOLD = 4;
 
 export default function Header({ toggleCart, toggleMenu, cartCount }: any) {
+  const [shrunk, setShrunk] = useState(false);
+
+  useEffect(() => {
+    let lastY = window.scrollY;
+    let ticking = false;
+
+    // The scroll position is read inside a rAF callback instead of in the
+    // listener itself, so a burst of scroll events collapses into one read per
+    // frame. On a 120Hz screen that is one read every ~8ms rather than dozens.
+    const update = () => {
+      ticking = false;
+      const y = window.scrollY;
+      const delta = y - lastY;
+
+      if (Math.abs(delta) < DIRECTION_THRESHOLD) return;
+      lastY = y;
+
+      // Near the top the logo is always full size; below that the scroll
+      // direction decides — down shrinks it, up restores it.
+      setShrunk(y > SHRINK_AFTER && delta > 0);
+    };
+
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(update);
+    };
+
+    // Passive: this listener never calls preventDefault, and saying so up front
+    // lets the browser scroll without waiting on the main thread.
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
   return (
     <>
       <header className="site-header">
@@ -10,11 +50,16 @@ export default function Header({ toggleCart, toggleMenu, cartCount }: any) {
           <button className="menu-btn" onClick={toggleMenu} aria-label="Menu">
             <span></span><span></span><span></span>
           </button>
-          <div className="brand-logo">
-            <Link href="/" style={{ display: 'block', textDecoration: 'none' }}>
-              <img src="/logo.png" alt="Snack Hub" style={{ height: '38px', width: 'auto', objectFit: 'contain' }} />
-            </Link>
-          </div>
+        </div>
+        <div className={`brand-logo${shrunk ? ' shrunk' : ''}`}>
+          <Link href="/" aria-label="Snack Hub home">
+            {/* On screen at ~150px wide; the source is 708px, so let the
+                optimizer serve a right-sized AVIF/WebP instead of 118KB PNG. */}
+            {/* `sizes` is what tells the browser this is a ~200px slot. Without
+                it, next/image falls back to a 1x/2x srcset off the 708px
+                intrinsic width and a retina screen pulls a 1920px render. */}
+            <Image src="/logo.png" alt="Snack Hub" width={708} height={156} sizes="(min-width:768px) 260px, 200px" priority />
+          </Link>
         </div>
         <div className="header-right">
           <button className="icon-btn" aria-label="Search">

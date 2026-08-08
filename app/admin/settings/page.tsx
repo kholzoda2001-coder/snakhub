@@ -13,6 +13,21 @@ export default function AdminSettings() {
     track_stock: 'false'
   });
 
+  // Turning tracking on while products still sit at qty 0 takes the whole shop
+  // out of stock at once, so the count is loaded up front to warn about it.
+  const [zeroStockCount, setZeroStockCount] = useState(0);
+
+  useEffect(() => {
+    fetch('/api/products?admin=true')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setZeroStockCount(data.filter((p: { stock?: number | null }) => (p.stock ?? 0) <= 0).length);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   useEffect(() => {
     fetch('/api/settings')
       .then(res => res.json())
@@ -142,7 +157,17 @@ export default function AdminSettings() {
                 type="checkbox"
                 id="trackStock"
                 checked={settings.track_stock === 'true'}
-                onChange={e => setSettings({ ...settings, track_stock: e.target.checked ? 'true' : 'false' })}
+                onChange={e => {
+                  if (e.target.checked && zeroStockCount > 0) {
+                    const ok = confirm(
+                      `${zeroStockCount} product(s) still have a quantity of 0.\n\n` +
+                      `Turn tracking on now and they will immediately show "Out of stock" ` +
+                      `and cannot be ordered.\n\nSet their QTY in Products first, or continue anyway?`
+                    );
+                    if (!ok) return;
+                  }
+                  setSettings({ ...settings, track_stock: e.target.checked ? 'true' : 'false' });
+                }}
                 style={{ width: '18px', height: '18px', cursor: 'pointer' }}
               />
               <label htmlFor="trackStock" style={{ fontSize: '14px', fontWeight: 700, cursor: 'pointer' }}>
@@ -153,6 +178,12 @@ export default function AdminSettings() {
               ⚠️ When on, every order reduces the product&apos;s stock and customers cannot order more than you have.
               Set a real stock number on every product before turning this on, otherwise orders will be rejected.
             </p>
+            {zeroStockCount > 0 && (
+              <p style={{ fontSize: '13px', color: 'var(--admin-danger)', marginTop: '6px', fontWeight: 700 }}>
+                🚫 {zeroStockCount} product(s) currently have QTY 0. They will show as
+                &quot;Out of stock&quot; the moment tracking is switched on.
+              </p>
+            )}
           </div>
 
           <hr style={{ border: 'none', borderTop: '1px solid var(--admin-border)' }} />

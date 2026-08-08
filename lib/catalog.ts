@@ -1,5 +1,7 @@
 import { prisma } from './prisma';
 import { resolveThumbnails } from './productImages';
+import { isStockTrackingOn } from './orders';
+import { stockInfo } from './stock';
 
 /**
  * The shop's product list, with image sources already resolved. Shared by
@@ -22,11 +24,19 @@ export async function getShopProducts() {
     }
   });
 
-  const thumbnails = await resolveThumbnails(products.map((p) => p.id));
+  // Availability is resolved here rather than in the browser so every surface
+  // — home, category, wishlist — gets the same answer without each one having
+  // to fetch the shop settings separately.
+  const [thumbnails, trackStock] = await Promise.all([
+    resolveThumbnails(products.map((p) => p.id)),
+    isStockTrackingOn(),
+  ]);
+
   return products.map((product) => ({
     ...product,
     img: thumbnails.get(product.id),
     images: [] as string[],
+    ...stockInfo(product.stock, trackStock),
   }));
 }
 

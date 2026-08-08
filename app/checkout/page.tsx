@@ -5,6 +5,8 @@ import { useCart } from '../../context/CartContext';
 import ShopShell from '../../components/ShopShell';
 import Footer from '../../components/Footer';
 import Link from 'next/link';
+import Image from 'next/image';
+import { canOptimize } from '../../lib/imageHosts';
 
 const UAE_CITIES = [
   'Dubai',
@@ -187,7 +189,17 @@ export default function CheckoutPage() {
                         {cart.map((item: any) => (
                           <div key={item.id} style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
                             <div style={{ width: '56px', height: '56px', borderRadius: 'var(--r-sm)', background: 'var(--bg-main)', display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative', border: '1px solid var(--border)' }}>
-                              <img src={item.img} alt={item.name} style={{ width: '44px', height: '44px', objectFit: 'contain' }} />
+                              {item.img && (
+                                <Image
+                                  src={item.img}
+                                  alt={item.name}
+                                  width={44}
+                                  height={44}
+                                  sizes="44px"
+                                  unoptimized={!canOptimize(item.img)}
+                                  style={{ width: '44px', height: '44px', objectFit: 'contain' }}
+                                />
+                              )}
                               <span style={{ position: 'absolute', top: '-8px', right: '-8px', background: 'var(--text-primary)', color: 'var(--bg-main)', fontSize: '11px', fontWeight: 800, width: '22px', height: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', boxShadow: '0 2px 5px rgba(0,0,0,0.2)' }}>
                                 {item.qty}
                               </span>
@@ -196,7 +208,7 @@ export default function CheckoutPage() {
                               <h4 style={{ fontSize: '14px', fontWeight: 700, margin: '0 0 4px 0', lineHeight: 1.3 }}>{item.name}</h4>
                               <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{item.catLabel}</span>
                             </div>
-                            <div style={{ fontWeight: 800, fontSize: '15px' }}>
+                            <div style={{ fontWeight: 800, fontSize: '15px', color: 'var(--price)' }}>
                               {item.price * item.qty} AED
                             </div>
                           </div>
@@ -224,7 +236,7 @@ export default function CheckoutPage() {
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '22px', fontWeight: 900, marginTop: '10px', paddingTop: '16px', borderTop: '1px solid var(--border)' }}>
                           <span>Total</span>
-                          <span style={{ color: 'var(--orange)' }}>{totals.finalTotal.toFixed(2)} AED</span>
+                          <span style={{ color: 'var(--price)' }}>{totals.finalTotal.toFixed(2)} AED</span>
                         </div>
                       </div>
                     </div>

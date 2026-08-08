@@ -1,6 +1,5 @@
 'use client';
 import React from 'react';
-import Hero from './Hero';
 import ProductList from './ProductList';
 import CategoryCircles from './CategoryCircles';
 import { useCart } from '../context/CartContext';
@@ -12,11 +11,9 @@ type CategoryGroup = {
 };
 
 export default function HomeContent({
-  banners,
   categories,
   categoryGroups,
 }: {
-  banners: any[];
   categories: any[];
   categoryGroups: CategoryGroup[];
 }) {
@@ -24,16 +21,16 @@ export default function HomeContent({
 
   return (
     <>
-      <Hero banners={banners} />
       <CategoryCircles categories={categories} />
 
       {categoryGroups.length > 0 ? (
-        categoryGroups.map((group) => (
+        categoryGroups.map((group, index) => (
           <ProductList
             key={group.slug}
             title={group.label}
             categorySlug={group.slug}
             productsData={group.products}
+            eager={index === 0}
             activeCategory="all"
             searchQuery=""
             addToCart={addToCart}

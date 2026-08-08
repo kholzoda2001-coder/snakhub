@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '../../../../lib/prisma';
 import { publicImageSrc } from '../../../../lib/productImages';
+import { isStockTrackingOn } from '../../../../lib/orders';
+import { stockInfo } from '../../../../lib/stock';
 
 export async function GET(req: Request, context: { params: Promise<{ id: string }> }) {
   try {
@@ -17,7 +19,8 @@ export async function GET(req: Request, context: { params: Promise<{ id: string 
       img: publicImageSrc(product.id, product.img),
       images: gallery.length > 0
         ? gallery.map((stored, i) => publicImageSrc(product.id, stored, i))
-        : [publicImageSrc(product.id, product.img)]
+        : [publicImageSrc(product.id, product.img)],
+      ...stockInfo(product.stock, await isStockTrackingOn())
     };
 
     return NextResponse.json(formatted);

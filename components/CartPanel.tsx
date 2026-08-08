@@ -1,7 +1,9 @@
 'use client';
 import React from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useCart } from '../context/CartContext';
+import { canOptimize } from '../lib/imageHosts';
 
 export default function CartPanel({ cart, isCartOpen, toggleCart, removeFromCart, updateQty }: any) {
   const router = useRouter();
@@ -25,7 +27,17 @@ export default function CartPanel({ cart, isCartOpen, toggleCart, removeFromCart
           ) : (
             cart.map((item: any) => (
               <div key={item.id} className="cart-item">
-                <img className="ci-img" src={item.img} alt={item.name} />
+                {item.img && (
+                  <Image
+                    className="ci-img"
+                    src={item.img}
+                    alt={item.name}
+                    width={60}
+                    height={60}
+                    sizes="60px"
+                    unoptimized={!canOptimize(item.img)}
+                  />
+                )}
                 <div className="ci-info">
                   <div className="ci-name">{item.name}</div>
                   <div className="ci-cat">{item.catLabel}</div>

@@ -48,7 +48,7 @@ export default function AdminProducts() {
   const [loading, setLoading] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
   const [formData, setFormData] = useState({
-    name: '', cat: '', catLabel: '', price: 0, oldPrice: 0, tag: '', tagLabel: '', img: '', images: [] as string[], desc: '', isOfferEligible: true
+    name: '', cat: '', catLabel: '', price: 0, oldPrice: 0, tag: '', tagLabel: '', img: '', images: [] as string[], desc: '', isOfferEligible: true, stock: 0
   });
   const [editingId, setEditingId] = useState<number | null>(null);
   const [uploadingImg, setUploadingImg] = useState(false);
@@ -126,7 +126,8 @@ export default function AdminProducts() {
             img: p.img,
             images: 'images' in p && p.images ? p.images : [p.img],
             desc: p.desc || '',
-            isOfferEligible: true
+            isOfferEligible: true,
+            stock: 'stock' in p && typeof p.stock === 'number' ? p.stock : 0
           })
         });
       }
@@ -151,7 +152,15 @@ export default function AdminProducts() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const payload = { ...formData, oldPrice: formData.oldPrice || null, tag: formData.tag || null, tagLabel: formData.tagLabel || null, isOfferEligible: formData.isOfferEligible };
+      const payload = {
+        ...formData,
+        oldPrice: formData.oldPrice || null,
+        tag: formData.tag || null,
+        tagLabel: formData.tagLabel || null,
+        isOfferEligible: formData.isOfferEligible,
+        // The column is an Int; an empty or half-typed box must not send NaN.
+        stock: Number.isFinite(formData.stock) ? Math.max(0, Math.trunc(formData.stock)) : 0
+      };
       if (editingId) {
         await fetch(`/api/products/${editingId}`, {
           method: 'PUT',
@@ -167,7 +176,7 @@ export default function AdminProducts() {
       }
       setIsAdding(false);
       setEditingId(null);
-      setFormData({ name: '', cat: '', catLabel: '', price: 0, oldPrice: 0, tag: '', tagLabel: '', img: '', images: [], desc: '', isOfferEligible: true });
+      setFormData({ name: '', cat: '', catLabel: '', price: 0, oldPrice: 0, tag: '', tagLabel: '', img: '', images: [], desc: '', isOfferEligible: true, stock: 0 });
       fetchData();
     } catch (err) {
       alert('Failed to save product');
@@ -177,7 +186,8 @@ export default function AdminProducts() {
   const editProduct = (p: any) => {
     setFormData({
       name: p.name, cat: p.cat, catLabel: p.catLabel, price: p.price, oldPrice: p.oldPrice || 0,
-      tag: p.tag || '', tagLabel: p.tagLabel || '', img: p.img, images: Array.isArray(p.images) ? p.images : (p.img ? [p.img] : []), desc: p.desc || '', isOfferEligible: p.isOfferEligible ?? true
+      tag: p.tag || '', tagLabel: p.tagLabel || '', img: p.img, images: Array.isArray(p.images) ? p.images : (p.img ? [p.img] : []), desc: p.desc || '', isOfferEligible: p.isOfferEligible ?? true,
+      stock: p.stock ?? 0
     });
     setEditingId(p.id);
     setIsAdding(true);
@@ -191,7 +201,7 @@ export default function AdminProducts() {
         <h1 className="page-title">Products Management</h1>
         <div style={{ display: 'flex', gap: '10px' }}>
           <button className="btn-secondary" onClick={loadDefaultProducts} style={{ padding: '10px 16px', borderRadius: 'var(--r-md)', border: '1px solid var(--admin-border)', background: 'var(--admin-card)', color: 'var(--admin-text)', cursor: 'pointer', fontWeight: 600 }}>Load Defaults</button>
-          <button className="btn-primary" onClick={() => { setIsAdding(true); setEditingId(null); setFormData({ name: '', cat: '', catLabel: '', price: 0, oldPrice: 0, tag: '', tagLabel: '', img: '', images: [], desc: '', isOfferEligible: true }); }}>+ Add Product</button>
+          <button className="btn-primary" onClick={() => { setIsAdding(true); setEditingId(null); setFormData({ name: '', cat: '', catLabel: '', price: 0, oldPrice: 0, tag: '', tagLabel: '', img: '', images: [], desc: '', isOfferEligible: true, stock: 0 }); }}>+ Add Product</button>
         </div>
       </div>
 
@@ -251,6 +261,26 @@ export default function AdminProducts() {
               <input type="number" step="0.01" value={formData.oldPrice} onChange={e => setFormData({...formData, oldPrice: parseFloat(e.target.value)})} style={inputStyle} />
             </div>
             <div>
+              <label>Quantity in stock (QTY)</label>
+              <input
+                type="number"
+                min="0"
+                step="1"
+                value={formData.stock}
+                onChange={e => {
+                  const n = parseInt(e.target.value, 10);
+                  setFormData({ ...formData, stock: Number.isNaN(n) ? 0 : Math.max(0, n) });
+                }}
+                style={inputStyle}
+              />
+              <span style={{ fontSize: '12px', color: 'var(--admin-muted)', display: 'block', marginTop: '4px' }}>
+                {formData.stock > 0
+                  ? `Shoppers see "In stock"${formData.stock <= 5 ? ` — and "Only ${formData.stock} left"` : ''}.`
+                  : 'Set to 0 and shoppers see "Out of stock" — the Add to Cart button is disabled.'}
+                {' '}Only applies while Settings → Track stock levels is on.
+              </span>
+            </div>
+            <div>
               <label>Tag Class (e.g. hot, new)</label>
               <input type="text" value={formData.tag} onChange={e => setFormData({...formData, tag: e.target.value})} style={inputStyle} />
             </div>
@@ -282,7 +312,7 @@ export default function AdminProducts() {
               <th>Name</th>
               <th>Category</th>
               <th>Price</th>
-              <th>Stock</th>
+              <th>Stock (QTY)</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -296,7 +326,12 @@ export default function AdminProducts() {
                   <td style={{ fontWeight: 700 }}>{p.name}</td>
                   <td>{p.catLabel}</td>
                   <td>{p.price} AED {p.oldPrice && <span style={{ textDecoration: 'line-through', color: 'var(--admin-muted)', fontSize: '12px' }}>{p.oldPrice}</span>}</td>
-                  <td>{p.stock > 0 ? p.stock : 'Unlimited'}</td>
+                  {/* The stored QTY, not a guess: it only drives the shop when
+                      Settings → Track stock levels is on, and the form says so. */}
+                  <td style={{ fontWeight: 700, color: (p.stock ?? 0) <= 0 ? 'var(--admin-danger)' : (p.stock <= 5 ? '#d97706' : 'inherit') }}>
+                    {p.stock ?? 0}
+                    {(p.stock ?? 0) <= 0 && <span style={{ fontWeight: 600, fontSize: '12px' }}> (out of stock)</span>}
+                  </td>
                   <td>
                     <div style={{ display: 'flex', gap: '10px' }}>
                       <button onClick={() => editProduct(p)} style={{ cursor: 'pointer', background: 'transparent', border: 'none', color: '#3b82f6', fontWeight: 600 }}>Edit</button>

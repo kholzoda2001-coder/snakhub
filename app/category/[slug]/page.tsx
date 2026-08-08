@@ -1,9 +1,12 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import ShopShell from '../../../components/ShopShell';
 import Footer from '../../../components/Footer';
 import { useCart } from '../../../context/CartContext';
+import { canOptimize } from '../../../lib/imageHosts';
+import { stockLabel } from '../../../lib/stock';
 
 export default function CategoryPage({ params }: { params: { slug: string } }) {
   const [productsData, setProductsData] = useState<any[]>([]);
@@ -72,7 +75,18 @@ export default function CategoryPage({ params }: { params: { slug: string } }) {
                     <Link href={`/product/${p.id}`} className="prod-link" style={{ display: 'block', textDecoration: 'none', color: 'inherit' }}>
                       <div className="prod-img-wrap">
                         {p.tag && <span className={`p-tag ${p.tag}`}>{p.tagLabel}</span>}
-                        <img src={p.img} alt={p.name} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        {p.img && (
+                          <Image
+                            src={p.img}
+                            alt={p.name}
+                            fill
+                            // Fluid grid: roughly half the viewport on phones,
+                            // capped once the columns stop growing.
+                            sizes="(min-width:768px) 240px, 45vw"
+                            priority={i < 4}
+                            unoptimized={!canOptimize(p.img)}
+                          />
+                        )}
                       </div>
                     </Link>
                     <button className={`wl-btn ${inWL ? 'on' : ''}`} onClick={() => toggleWishlist(p.id)} style={{ zIndex: 10 }}>
@@ -86,9 +100,9 @@ export default function CategoryPage({ params }: { params: { slug: string } }) {
                         <div className="prod-price">{p.price} AED</div>
                         {p.oldPrice && <div className="prod-old">{p.oldPrice} AED</div>}
                       </div>
-                      <div className="prod-stock">✅ In stock</div>
-                      <button className="atc-btn" onClick={() => addToCart(p)}>
-                        🛒 Add to Cart
+                      <div className={`prod-stock ${stockLabel(p).tone}`}>{stockLabel(p).text}</div>
+                      <button className="atc-btn" onClick={() => addToCart(p)} disabled={p.soldOut}>
+                        {p.soldOut ? 'Out of Stock' : '🛒 Add to Cart'}
                       </button>
                     </div>
                   </div>

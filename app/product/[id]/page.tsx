@@ -2,9 +2,11 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import ShopShell from '../../../components/ShopShell';
 import Footer from '../../../components/Footer';
 import { useCart } from '../../../context/CartContext';
+import { canOptimize } from '../../../lib/imageHosts';
 import { products } from '../../../data/products'; // fallback data
 
 export default function ProductDetailPage() {
@@ -82,7 +84,18 @@ export default function ProductDetailPage() {
                 <button className={`wl-btn ${inWL ? 'on' : ''}`} onClick={() => toggleWishlist(product.id)} style={{ position: 'absolute', top: '10px', right: '10px', width: '40px', height: '40px', fontSize: '20px', zIndex: 10 }}>
                   {inWL ? '❤️' : '🤍'}
                 </button>
-                <img src={activeImg || product.img} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                {(activeImg || product.img) && (
+                  <Image
+                    src={activeImg || product.img}
+                    alt={product.name}
+                    fill
+                    // The frame is capped at 400px wide and centred.
+                    sizes="(min-width:768px) 400px, 100vw"
+                    priority
+                    unoptimized={!canOptimize(activeImg || product.img)}
+                    style={{ objectFit: 'cover' }}
+                  />
+                )}
               </div>
               
               {/* Gallery Thumbnails */}
@@ -104,7 +117,15 @@ export default function ProductDetailPage() {
                         padding: 0
                       }}
                     >
-                      <img src={img} alt={`Thumbnail ${idx}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <Image
+                        src={img}
+                        alt={`Thumbnail ${idx}`}
+                        width={70}
+                        height={70}
+                        sizes="70px"
+                        unoptimized={!canOptimize(img)}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
                     </button>
                   ))}
                 </div>
@@ -117,39 +138,56 @@ export default function ProductDetailPage() {
                 <span style={{ fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--orange)' }}>{product.catLabel}</span>
                 <h1 style={{ fontSize: 'clamp(28px, 4vw, 42px)', fontWeight: 900, fontFamily: 'var(--font-d)', lineHeight: 1.1, margin: '8px 0', color: 'var(--text-primary)' }}>{product.name}</h1>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px', marginTop: '12px' }}>
-                  <span style={{ fontSize: '32px', fontWeight: 900, fontFamily: 'var(--font-d)', color: 'var(--text-primary)' }}>{product.price} AED</span>
+                  <span style={{ fontSize: '32px', fontWeight: 900, fontFamily: 'var(--font-d)', color: 'var(--price)' }}>{product.price} AED</span>
                   {product.oldPrice && <span style={{ fontSize: '18px', color: 'var(--text-muted)', textDecoration: 'line-through', fontWeight: 600 }}>{product.oldPrice} AED</span>}
                 </div>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#10b981', fontWeight: 800, fontSize: '14px', marginTop: '4px' }}>
-                <span style={{ display: 'inline-block', width: '8px', height: '8px', background: '#10b981', borderRadius: '50%', boxShadow: '0 0 8px #10b981' }}></span>
-                In Stock & Ready to Ship
-              </div>
+              {(() => {
+                // Colour and wording follow the shared stock helper so this page
+                // can never claim "ready to ship" for something the cards show
+                // as sold out.
+                const dot = product.soldOut ? 'var(--danger)' : (typeof product.stockLeft === 'number' && product.stockLeft <= 5 ? 'var(--orange)' : '#10b981');
+                const text = product.soldOut
+                  ? 'Out of Stock'
+                  : typeof product.stockLeft === 'number' && product.stockLeft <= 5
+                    ? `Only ${product.stockLeft} left — order soon`
+                    : 'In Stock & Ready to Ship';
+                return (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: dot, fontWeight: 800, fontSize: '14px', marginTop: '4px' }}>
+                    <span style={{ display: 'inline-block', width: '8px', height: '8px', background: dot, borderRadius: '50%', boxShadow: `0 0 8px ${dot}` }}></span>
+                    {text}
+                  </div>
+                );
+              })()}
 
               <div style={{ display: 'flex', gap: '8px', marginTop: '20px', alignItems: 'stretch', height: '54px' }}>
                 {/* Qty Selector */}
                 <div style={{ display: 'flex', alignItems: 'center', background: 'var(--bg-raised)', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', padding: '0 4px', flexShrink: 0, width: '100px', justifyContent: 'space-between', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)' }}>
                   <button onClick={() => setQty(Math.max(1, qty - 1))} style={{ width: '30px', height: '100%', border: 'none', background: 'transparent', color: 'var(--text-secondary)', fontSize: '20px', cursor: 'pointer', transition: 'color 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onMouseOver={e=>e.currentTarget.style.color='var(--orange)'} onMouseOut={e=>e.currentTarget.style.color='var(--text-secondary)'}>−</button>
                   <span style={{ fontWeight: 900, fontSize: '15px', color: 'var(--text-primary)' }}>{qty}</span>
-                  <button onClick={() => setQty(qty + 1)} style={{ width: '30px', height: '100%', border: 'none', background: 'transparent', color: 'var(--text-secondary)', fontSize: '20px', cursor: 'pointer', transition: 'color 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onMouseOver={e=>e.currentTarget.style.color='var(--orange)'} onMouseOut={e=>e.currentTarget.style.color='var(--text-secondary)'}>+</button>
+                  {/* Never let the stepper go past what the shop can actually
+                      reserve — /api/orders would reject the order anyway. */}
+                  <button onClick={() => setQty(typeof product.stockLeft === 'number' ? Math.min(product.stockLeft, qty + 1) : qty + 1)} style={{ width: '30px', height: '100%', border: 'none', background: 'transparent', color: 'var(--text-secondary)', fontSize: '20px', cursor: 'pointer', transition: 'color 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onMouseOver={e=>e.currentTarget.style.color='var(--orange)'} onMouseOut={e=>e.currentTarget.style.color='var(--text-secondary)'}>+</button>
                 </div>
 
                 {/* Add to Cart Button */}
-                <button 
+                <button
                   onClick={() => handleAddToCart(false)}
-                  style={{ 
-                    flex: 1, 
-                    background: isAdding ? '#10b981' : 'var(--bg-main)', 
+                  disabled={product.soldOut}
+                  style={{
+                    opacity: product.soldOut ? 0.5 : 1,
+                    flex: 1,
+                    background: isAdding ? '#10b981' : 'var(--bg-main)',
                     color: isAdding ? '#fff' : 'var(--text-primary)', 
                     border: isAdding ? '2px solid #10b981' : '2px solid var(--border)', 
                     borderRadius: 'var(--r-md)', 
                     fontSize: '14px', 
                     fontWeight: 800, 
-                    cursor: 'pointer', 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center', 
+                    cursor: product.soldOut ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                     gap: '6px',
                     transition: 'all 0.3s ease',
                     boxShadow: isAdding ? '0 8px 16px rgba(16,185,129,0.2)' : '0 4px 6px rgba(0,0,0,0.02)',
@@ -163,17 +201,19 @@ export default function ProductDetailPage() {
                 </button>
 
                 {/* Buy Now Button */}
-                <button 
+                <button
                   onClick={() => handleAddToCart(true)}
-                  style={{ 
-                    flex: 1.5, 
-                    background: 'linear-gradient(135deg, var(--orange) 0%, #ff5e00 100%)', 
-                    color: '#fff', 
-                    border: 'none', 
-                    borderRadius: 'var(--r-md)', 
-                    fontSize: '14px', 
-                    fontWeight: 800, 
-                    cursor: 'pointer', 
+                  disabled={product.soldOut}
+                  style={{
+                    opacity: product.soldOut ? 0.5 : 1,
+                    flex: 1.5,
+                    background: 'linear-gradient(135deg, var(--orange) 0%, #ff5e00 100%)',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: 'var(--r-md)',
+                    fontSize: '14px',
+                    fontWeight: 800,
+                    cursor: product.soldOut ? 'not-allowed' : 'pointer',
                     display: 'flex', 
                     alignItems: 'center', 
                     justifyContent: 'center', 
@@ -185,10 +225,10 @@ export default function ProductDetailPage() {
                     padding: '0 4px',
                     whiteSpace: 'nowrap'
                   }}
-                  onMouseOver={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+                  onMouseOver={e => { if (!product.soldOut) e.currentTarget.style.transform = 'translateY(-2px)'; }}
                   onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}
                 >
-                  ⚡ Buy Now
+                  {product.soldOut ? 'Out of Stock' : '⚡ Buy Now'}
                 </button>
               </div>
               {/* Wholesale Contact */}
@@ -239,7 +279,15 @@ export default function ProductDetailPage() {
                           <Link href={`/product/${p.id}`} className="prod-link" style={{ display: 'block', textDecoration: 'none', color: 'inherit' }}>
                             <div className="prod-img-wrap">
                               {p.tag && <span className={`p-tag ${p.tag}`}>{p.tagLabel}</span>}
-                              <img src={p.img} alt={p.name} loading="lazy" />
+                              {p.img && (
+                                <Image
+                                  src={p.img}
+                                  alt={p.name}
+                                  fill
+                                  sizes="(min-width:1024px) 220px, (min-width:768px) 200px, 170px"
+                                  unoptimized={!canOptimize(p.img)}
+                                />
+                              )}
                             </div>
                           </Link>
                           <button className={`wl-btn ${isWL ? 'on' : ''}`} onClick={() => toggleWishlist(p.id)} style={{ zIndex: 10 }}>
