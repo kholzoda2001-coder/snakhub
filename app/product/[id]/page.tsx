@@ -7,6 +7,7 @@ import ShopShell from '../../../components/ShopShell';
 import Footer from '../../../components/Footer';
 import { useCart } from '../../../context/CartContext';
 import { canOptimize } from '../../../lib/imageHosts';
+import Loader from '../../../components/Loader';
 import { products } from '../../../data/products'; // fallback data
 
 export default function ProductDetailPage() {
@@ -50,7 +51,7 @@ export default function ProductDetailPage() {
     if (id) fetchProduct();
   }, [id, router]);
 
-  if (!product) return <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading...</div>;
+  if (!product) return <Loader full />;
 
   const inWL = wishlist.has(product.id);
 

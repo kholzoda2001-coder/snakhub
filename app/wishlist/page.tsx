@@ -7,6 +7,7 @@ import Footer from '../../components/Footer';
 import { useCart } from '../../context/CartContext';
 import { canOptimize } from '../../lib/imageHosts';
 import { stockLabel } from '../../lib/stock';
+import Loader from '../../components/Loader';
 
 export default function WishlistPage() {
   const { wishlist, toggleWishlist, addToCart } = useCart();
@@ -46,7 +47,7 @@ export default function WishlistPage() {
           </h1>
 
           {loading ? (
-            <div style={{ padding: '40px 0', textAlign: 'center', color: 'var(--text-muted)' }}>Loading...</div>
+            <Loader />
           ) : wishlistProducts.length === 0 ? (
             <div style={{ padding: '80px 0', textAlign: 'center' }}>
               <div style={{ fontSize: '48px', opacity: 0.5, marginBottom: '16px' }}>🤍</div>

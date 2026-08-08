@@ -62,11 +62,30 @@ export default function CheckoutPage() {
       const data = await res.json();
 
       if (res.ok) {
+        // The receipt is stashed here rather than fetched back from the server.
+        // /api/orders/[id]/verify is public and order ids are sequential, so it
+        // deliberately returns payment state only — never what someone bought.
+        // This copy belongs to the shopper's own tab.
+        try {
+          sessionStorage.setItem(`snackhub:order:${data.id}`, JSON.stringify({
+            id: data.id,
+            placedAt: new Date().toISOString(),
+            items: cart.map(item => ({ name: item.name, qty: item.qty, price: item.price })),
+            subtotal: totals.subtotal,
+            discount: totals.discount,
+            shipping: totals.shipping,
+            total: totals.finalTotal,
+          }));
+        } catch {
+          // Private browsing or a full quota — the page falls back to the total.
+        }
+
         if (data.redirect_url) {
           window.location.href = data.redirect_url;
         } else {
           clearCart();
-          router.push('/checkout/success');
+          // Without the id the success page had no order number to show at all.
+          router.push(`/checkout/success?order_id=${data.id}`);
         }
       } else {
         setError(data.error || 'Failed to submit order. Try again.');
