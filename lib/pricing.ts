@@ -2,8 +2,6 @@ export const SHIPPING_FEE = 20;
 export const DISCOUNT_RATE = 0.05;
 export const DISCOUNT_MIN_QTY = 2;
 export const FREE_SHIPPING_MIN_QTY = 3;
-// The site banner promises free delivery over 300 AED, so the cart has to honour it.
-export const FREE_SHIPPING_MIN_TOTAL = 300;
 
 export type PricedItem = {
   price: number;
@@ -38,10 +36,9 @@ export function calculateTotals(items: PricedItem[]): Totals {
 
   const discount = eligibleQty >= DISCOUNT_MIN_QTY ? eligibleSubtotal * DISCOUNT_RATE : 0;
 
-  // Free either way: 3+ cartons, or the advertised 300 AED threshold (measured
-  // after the discount, which is what the customer actually pays).
-  const earnsFreeShipping =
-    eligibleQty >= FREE_SHIPPING_MIN_QTY || subtotal - discount >= FREE_SHIPPING_MIN_TOTAL;
+  // Free delivery is earned by carton count only. There used to be a 300 AED
+  // spend threshold as well; it was removed so the shop advertises one rule.
+  const earnsFreeShipping = eligibleQty >= FREE_SHIPPING_MIN_QTY;
   const shipping = items.length === 0 || earnsFreeShipping ? 0 : SHIPPING_FEE;
 
   return {

@@ -6,6 +6,8 @@ export type OrderItem = {
   id: number;
   name: string;
   price: number;
+  /** Buy price at the moment of sale. Absent on orders placed before costing existed. */
+  cost?: number;
   qty: number;
   catLabel: string;
   isOfferEligible: boolean;

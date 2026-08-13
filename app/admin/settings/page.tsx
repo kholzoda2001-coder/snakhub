@@ -1,5 +1,24 @@
 'use client';
 import React, { useEffect, useState } from 'react';
+import {
+  DEFAULT_ESTIMATE,
+  FALLBACK_ESTIMATES,
+  parseEstimates,
+  serialiseEstimates,
+  SETTINGS_KEY as DELIVERY_KEY,
+  UAE_CITIES,
+  type DeliveryEstimates,
+} from '../../../lib/delivery';
+
+const inputStyle: React.CSSProperties = {
+  width: '100%',
+  padding: '12px',
+  marginTop: '4px',
+  borderRadius: 'var(--r-sm)',
+  border: '1px solid var(--admin-border)',
+  background: 'var(--admin-raised)',
+  color: 'var(--admin-text)',
+};
 
 export default function AdminSettings() {
   const [loading, setLoading] = useState(true);
@@ -16,6 +35,8 @@ export default function AdminSettings() {
   // Turning tracking on while products still sit at qty 0 takes the whole shop
   // out of stock at once, so the count is loaded up front to warn about it.
   const [zeroStockCount, setZeroStockCount] = useState(0);
+  // Delivery times live as JSON under one settings key; edited here as a form.
+  const [estimates, setEstimates] = useState<DeliveryEstimates>(FALLBACK_ESTIMATES);
 
   useEffect(() => {
     fetch('/api/products?admin=true')
@@ -37,6 +58,7 @@ export default function AdminSettings() {
             ...prev,
             ...data
           }));
+          setEstimates(parseEstimates(data[DELIVERY_KEY]));
         }
         setLoading(false);
       })
@@ -53,7 +75,8 @@ export default function AdminSettings() {
       const res = await fetch('/api/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(settings)
+        // Delivery times are edited as a form but stored as one JSON value.
+        body: JSON.stringify({ ...settings, [DELIVERY_KEY]: serialiseEstimates(estimates) })
       });
       if (res.ok) {
         alert('Settings saved successfully!');
@@ -184,6 +207,40 @@ export default function AdminSettings() {
                 &quot;Out of stock&quot; the moment tracking is switched on.
               </p>
             )}
+          </div>
+
+          <hr style={{ border: 'none', borderTop: '1px solid var(--admin-border)' }} />
+
+          <div>
+            <h2 style={{ fontSize: '18px', fontWeight: 800, marginBottom: '4px' }}>Delivery times 🚚</h2>
+            <p style={{ fontSize: '13px', color: 'var(--admin-muted)', marginBottom: '12px' }}>
+              Shown at checkout before the customer orders, and on the order confirmation.
+              Leave an emirate blank to use the default.
+            </p>
+
+            <label>Default (used where no emirate is set)</label>
+            <input
+              type="text"
+              value={estimates.default}
+              onChange={e => setEstimates({ ...estimates, default: e.target.value })}
+              placeholder={DEFAULT_ESTIMATE}
+              style={inputStyle}
+            />
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '10px', marginTop: '12px' }}>
+              {UAE_CITIES.map(city => (
+                <div key={city}>
+                  <label style={{ fontSize: '13px' }}>{city}</label>
+                  <input
+                    type="text"
+                    value={estimates.byCity[city] ?? ''}
+                    onChange={e => setEstimates({ ...estimates, byCity: { ...estimates.byCity, [city]: e.target.value } })}
+                    placeholder={estimates.default || DEFAULT_ESTIMATE}
+                    style={inputStyle}
+                  />
+                </div>
+              ))}
+            </div>
           </div>
 
           <hr style={{ border: 'none', borderTop: '1px solid var(--admin-border)' }} />

@@ -13,6 +13,9 @@ model Product {
   cat             String
   catLabel        String
   price           Float
+  // What the carton cost to buy. Gross profit is meaningless without it, and 0
+  // means "not recorded yet" rather than "free".
+  cost            Float    @default(0)
   oldPrice        Float?
   details         String?  @db.Text
   badge           String?
@@ -34,8 +37,16 @@ model Order {
   address   String
   items           Json
   total           Float
+  // Payment state only: Pending, Pending Payment, Paid, Failed. Written by the
+  // checkout and Ziina flows — the admin must not overwrite it.
   status          String   @default("Pending")
+  // Delivery state, kept separate so marking an order shipped cannot erase the
+  // record that it was paid: Unfulfilled, Processing, Fulfilled, Cancelled.
+  fulfillment     String   @default("Unfulfilled")
   paymentIntentId String?  @db.VarChar(255)
+  // Set when the shop has chased an abandoned checkout, so the same customer
+  // is not messaged twice about the same order.
+  contactedAt     DateTime?
   createdAt       DateTime @default(now())
 }
 
@@ -68,6 +79,23 @@ model Banner {
   link      String?
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
+}
+
+/**
+ * Money going out that is not stock: rent, salaries, delivery, marketing.
+ * `paidWith` is what keeps the cash and card balances honest — a cash expense
+ * reduces the cash drawer, a card one does not.
+ */
+model Expense {
+  id        Int      @id @default(autoincrement())
+  date      DateTime
+  category  String
+  amount    Float
+  paidWith  String   @default("cash")
+  note      String?  @db.Text
+  createdAt DateTime @default(now())
+
+  @@index([date])
 }
 
 model Settings {

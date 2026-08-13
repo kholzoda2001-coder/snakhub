@@ -7,31 +7,32 @@ import Footer from '../../components/Footer';
 import Link from 'next/link';
 import Image from 'next/image';
 import { canOptimize } from '../../lib/imageHosts';
-
-const UAE_CITIES = [
-  'Dubai',
-  'Abu Dhabi',
-  'Sharjah',
-  'Ajman',
-  'Ras Al Khaimah',
-  'Fujairah',
-  'Umm Al Quwain'
-];
+import { checkUaeMobile, formatUaeLocal, toE164, toLocalDigits } from '../../lib/phone';
+import { saveOrder } from '../../lib/orderHistory';
+import { estimateFor, FALLBACK_ESTIMATES, UAE_CITIES, type DeliveryEstimates } from '../../lib/delivery';
+import { useLanguage } from '../../context/LanguageContext';
 
 export default function CheckoutPage() {
   const router = useRouter();
   const { cart, clearCart, totals } = useCart();
+  const { t } = useLanguage();
   const [formData, setFormData] = useState({ name: '', phone: '', city: 'Dubai', address: '' });
   const [paymentMethod, setPaymentMethod] = useState<'cod' | 'online'>('cod');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [ziinaEnabled, setZiinaEnabled] = useState(true); // Default true, will update on mount
+  const [deliveryEstimates, setDeliveryEstimates] = useState<DeliveryEstimates>(FALLBACK_ESTIMATES);
+  // formData.phone holds the 9 local digits only; +971 is added on submit.
+  const [phoneTouched, setPhoneTouched] = useState(false);
+  const [phoneFocused, setPhoneFocused] = useState(false);
+  const phoneCheck = checkUaeMobile(formData.phone);
 
   React.useEffect(() => {
     fetch('/api/checkout-config')
       .then(res => res.json())
       .then(data => {
         setZiinaEnabled(data.ziinaEnabled);
+        if (data.deliveryEstimates) setDeliveryEstimates(data.deliveryEstimates);
         if (!data.ziinaEnabled && paymentMethod === 'online') {
           setPaymentMethod('cod');
         }
@@ -43,7 +44,12 @@ export default function CheckoutPage() {
     e.preventDefault();
     if (cart.length === 0) return setError('Your cart is empty');
     if (!formData.name || !formData.phone || !formData.city || !formData.address) return setError('Please fill all fields');
-    
+
+    if (!phoneCheck.valid) {
+      setPhoneTouched(true);
+      return setError(phoneCheck.message || 'Please enter a valid UAE mobile number.');
+    }
+
     setError('');
     setLoading(true);
 
@@ -54,6 +60,8 @@ export default function CheckoutPage() {
         // Only ids and quantities matter here — the server prices the order itself.
         body: JSON.stringify({
           ...formData,
+          // Stored and sent to Telegram in full international form.
+          phone: toE164(formData.phone),
           paymentMethod,
           items: cart.map(item => ({ id: item.id, qty: item.qty }))
         })
@@ -62,11 +70,26 @@ export default function CheckoutPage() {
       const data = await res.json();
 
       if (res.ok) {
+        // The receipt is stored on the device rather than fetched back from the
+        // server. /api/orders/[id]/verify is public and order ids are
+        // sequential, so it deliberately returns payment state only — never
+        // what someone bought. This copy also powers the My Orders page.
+        saveOrder({
+          id: data.id,
+          placedAt: new Date().toISOString(),
+          items: cart.map(item => ({ name: item.name, qty: item.qty, price: item.price })),
+          subtotal: totals.subtotal,
+          discount: totals.discount,
+          shipping: totals.shipping,
+          total: totals.finalTotal,
+        });
+
         if (data.redirect_url) {
           window.location.href = data.redirect_url;
         } else {
           clearCart();
-          router.push('/checkout/success');
+          // Without the id the success page had no order number to show at all.
+          router.push(`/checkout/success?order_id=${data.id}`);
         }
       } else {
         setError(data.error || 'Failed to submit order. Try again.');
@@ -137,15 +160,48 @@ export default function CheckoutPage() {
                       </div>
                       <div className="input-group">
                         <label style={{ display: 'block', fontSize: '13px', fontWeight: 800, marginBottom: '8px', color: 'var(--text-secondary)' }}>Phone Number</label>
-                        <input 
-                          type="tel" 
-                          value={formData.phone}
-                          onChange={e => setFormData({...formData, phone: e.target.value})}
-                          style={{ width: '100%', padding: '16px', borderRadius: 'var(--r-md)', border: '2px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)', outline: 'none', fontSize: '15px', transition: 'all 0.2s', fontWeight: 500 }}
-                          placeholder="+971 50 000 0000"
-                          onFocus={(e) => e.target.style.borderColor = 'var(--orange)'}
-                          onBlur={(e) => e.target.style.borderColor = 'var(--border)'}
-                        />
+                        {/* +971 is fixed and lives outside the input, so it can
+                            never be edited away or typed twice. */}
+                        <div style={{
+                          display: 'flex', alignItems: 'stretch', width: '100%',
+                          borderRadius: 'var(--r-md)', overflow: 'hidden',
+                          border: `2px solid ${phoneTouched && phoneCheck.message ? 'var(--danger)' : phoneFocused ? 'var(--orange)' : 'var(--border)'}`,
+                          background: 'var(--bg-input)', transition: 'border-color 0.2s'
+                        }}>
+                          <span style={{
+                            display: 'flex', alignItems: 'center', padding: '16px 12px 16px 16px',
+                            fontSize: '15px', fontWeight: 700, color: 'var(--text-secondary)',
+                            borderRight: '1px solid var(--border)', userSelect: 'none', whiteSpace: 'nowrap'
+                          }}>
+                            🇦🇪 +971
+                          </span>
+                          <input
+                            type="tel"
+                            inputMode="numeric"
+                            autoComplete="tel-national"
+                            aria-label="UAE mobile number without country code"
+                            aria-invalid={phoneTouched && !!phoneCheck.message}
+                            aria-describedby="phone-help"
+                            value={formatUaeLocal(formData.phone)}
+                            onChange={e => setFormData({ ...formData, phone: toLocalDigits(e.target.value) })}
+                            onBlur={() => { setPhoneTouched(true); setPhoneFocused(false); }}
+                            onFocus={() => setPhoneFocused(true)}
+                            style={{ flex: 1, minWidth: 0, padding: '16px 16px 16px 12px', border: 'none', background: 'transparent', color: 'var(--text-primary)', outline: 'none', fontSize: '15px', fontWeight: 500, letterSpacing: '.02em' }}
+                            placeholder="50 123 4567"
+                          />
+                        </div>
+                        <div id="phone-help" style={{ marginTop: '6px', fontSize: '12.5px', fontWeight: 600, minHeight: '18px' }}>
+                          {/* Shown as soon as there is something to correct, so
+                              "1 more digit needed" appears while typing. It only
+                              turns red once they have left the field or hit submit. */}
+                          {phoneCheck.message ? (
+                            <span style={{ color: phoneTouched ? 'var(--danger)' : 'var(--orange)' }}>⚠️ {phoneCheck.message}</span>
+                          ) : phoneCheck.valid ? (
+                            <span style={{ color: 'var(--green-dark)' }}>✅ {toE164(formData.phone)}</span>
+                          ) : (
+                            <span style={{ color: 'var(--text-muted)' }}>9 digits after +971, starting with 5.</span>
+                          )}
+                        </div>
                       </div>
                       <div className="input-group">
                         <label style={{ display: 'block', fontSize: '13px', fontWeight: 800, marginBottom: '8px', color: 'var(--text-secondary)' }}>City (Emirate)</label>
@@ -160,6 +216,17 @@ export default function CheckoutPage() {
                             {UAE_CITIES.map(city => <option key={city} value={city}>{city}</option>)}
                           </select>
                           <svg style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', opacity: 0.5 }} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                        </div>
+                        {/* Answered before they order, not after — this is the
+                            question that otherwise arrives by WhatsApp. */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px', fontSize: '13px', fontWeight: 700, color: 'var(--green-dark)' }}>
+                          <span aria-hidden="true">🚚</span>
+                          <span>
+                            {t('checkout.arrivesIn')}{' '}
+                            <strong style={{ color: 'var(--text-primary)' }}>
+                              {estimateFor(formData.city, deliveryEstimates)}
+                            </strong>
+                          </span>
                         </div>
                       </div>
                       <div className="input-group">

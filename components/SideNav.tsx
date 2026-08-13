@@ -2,8 +2,10 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function SideNav({ isMenuOpen, toggleMenu }: any) {
+  const { t } = useLanguage();
   const [categories, setCategories] = React.useState<any[]>([]);
   const loadedRef = React.useRef(false);
 
@@ -49,10 +51,10 @@ export default function SideNav({ isMenuOpen, toggleMenu }: any) {
         </div>
         <div className="side-links">
           <Link href="/" onClick={toggleMenu}>
-            <span className="snl-icon">🏠</span> <span>Home</span>
+            <span className="snl-icon">🏠</span> <span>{t('nav.home')}</span>
           </Link>
 
-          <div className="side-group-label">Categories</div>
+          <div className="side-group-label">{t('nav.categories')}</div>
 
           {categories.map(c => (
             <Link key={c.id} href={`/category/${c.slug}`} onClick={toggleMenu}>
@@ -60,20 +62,20 @@ export default function SideNav({ isMenuOpen, toggleMenu }: any) {
             </Link>
           ))}
 
-          <div className="side-group-label">My Account</div>
+          <div className="side-group-label">{t('nav.myAccount')}</div>
 
           <Link href="/wishlist" onClick={toggleMenu}>
-            <span className="snl-icon">❤️</span> <span>My Wishlist</span>
+            <span className="snl-icon">❤️</span> <span>{t('nav.wishlist')}</span>
+          </Link>
+          <Link href="/orders" onClick={toggleMenu}>
+            <span className="snl-icon">📦</span> <span>{t('nav.orders')}</span>
           </Link>
           <a href="#" onClick={toggleMenu}>
-            <span className="snl-icon">📦</span> <span>My Orders</span>
-          </a>
-          <a href="#" onClick={toggleMenu}>
-            <span className="snl-icon">🎧</span> <span>Support / Chat</span>
+            <span className="snl-icon">🎧</span> <span>{t('nav.support')}</span>
           </a>
         </div>
         <div className="side-nav-footer">
-          © {new Date().getFullYear()} Snack Hub. All rights reserved.
+          © {new Date().getFullYear()} Snack Hub. {t('footer.rights')}
         </div>
       </nav>
     </>

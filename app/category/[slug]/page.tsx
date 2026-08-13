@@ -7,6 +7,7 @@ import Footer from '../../../components/Footer';
 import { useCart } from '../../../context/CartContext';
 import { canOptimize } from '../../../lib/imageHosts';
 import { stockLabel } from '../../../lib/stock';
+import Loader from '../../../components/Loader';
 
 export default function CategoryPage({ params }: { params: { slug: string } }) {
   const [productsData, setProductsData] = useState<any[]>([]);
@@ -59,7 +60,7 @@ export default function CategoryPage({ params }: { params: { slug: string } }) {
           </h1>
 
           {loading ? (
-            <div style={{ padding: '40px 0', textAlign: 'center', color: 'var(--text-muted)' }}>Loading...</div>
+            <Loader />
           ) : productsData.length === 0 ? (
             <div style={{ padding: '40px 0', textAlign: 'center', color: 'var(--text-muted)' }}>No products found in this category.</div>
           ) : (

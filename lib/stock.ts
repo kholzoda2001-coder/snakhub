@@ -27,18 +27,25 @@ export function stockInfo(stock: number | null | undefined, trackStock: boolean)
 }
 
 export type StockLabel = {
+  /** English text, for places with no translator to hand (admin, exports). */
   text: string;
+  /** Translation key, so the storefront can render this in Arabic. */
+  key: 'product.outOfStock' | 'product.onlyLeft' | 'product.inStock';
+  /** Fills the {n} placeholder in product.onlyLeft. */
+  vars?: { n: number };
   /** Maps to the .prod-stock modifier classes in globals.css. */
   tone: 'ok' | 'low' | 'out';
 };
 
 export function stockLabel(info: Partial<StockInfo> | null | undefined): StockLabel {
-  if (info?.soldOut) return { text: '⛔ Out of stock', tone: 'out' };
+  if (info?.soldOut) {
+    return { text: '⛔ Out of stock', key: 'product.outOfStock', tone: 'out' };
+  }
 
   const left = info?.stockLeft;
   if (typeof left === 'number' && left <= LOW_STOCK_THRESHOLD) {
-    return { text: `⚠️ Only ${left} left`, tone: 'low' };
+    return { text: `⚠️ Only ${left} left`, key: 'product.onlyLeft', vars: { n: left }, tone: 'low' };
   }
 
-  return { text: '✅ In stock', tone: 'ok' };
+  return { text: '✅ In stock', key: 'product.inStock', tone: 'ok' };
 }

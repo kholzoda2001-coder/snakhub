@@ -4,6 +4,7 @@ import { buildOrderMessage, sendTelegramNotification } from '../../../lib/telegr
 import { calculateTotals } from '../../../lib/pricing';
 import { isStockTrackingOn, type OrderItem } from '../../../lib/orders';
 import { createPaymentIntent, getZiinaConfig } from '../../../lib/ziina';
+import { checkUaeMobile, toE164, toLocalDigits } from '../../../lib/phone';
 
 export const dynamic = 'force-dynamic';
 
@@ -32,6 +33,18 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Name, phone and address are required.' }, { status: 400 });
     }
 
+    // The form validates too, but that is bypassable — an unreachable phone
+    // number means an order nobody can deliver.
+    const localDigits = toLocalDigits(customerPhone);
+    const phoneCheck = checkUaeMobile(localDigits);
+    if (!phoneCheck.valid) {
+      return NextResponse.json(
+        { error: phoneCheck.message || 'Please enter a valid UAE mobile number.' },
+        { status: 400 }
+      );
+    }
+    const normalisedPhone = toE164(localDigits);
+
     // The emirate is picked in a separate field but the courier needs it on one line.
     const fullAddress = customerCity ? `${streetAddress}, ${customerCity}` : streetAddress;
 
@@ -53,7 +66,7 @@ export async function POST(req: Request) {
     // Prices, names and offer flags come from the database — never from the browser.
     const products = await prisma.product.findMany({
       where: { id: { in: [...requestedQty.keys()] } },
-      select: { id: true, name: true, price: true, stock: true, catLabel: true, isOfferEligible: true }
+      select: { id: true, name: true, price: true, cost: true, stock: true, catLabel: true, isOfferEligible: true }
     });
 
     if (products.length !== requestedQty.size) {
@@ -64,6 +77,9 @@ export async function POST(req: Request) {
       id: product.id,
       name: product.name,
       price: product.price,
+      // Cost is snapshotted with the sale so last month's margin does not change
+      // when a supplier price changes today.
+      cost: product.cost,
       qty: requestedQty.get(product.id)!,
       catLabel: product.catLabel,
       isOfferEligible: product.isOfferEligible
@@ -103,7 +119,7 @@ export async function POST(req: Request) {
       return tx.order.create({
         data: {
           name: customerName,
-          phone: customerPhone,
+          phone: normalisedPhone,
           address: fullAddress,
           items: orderItems,
           total: totals.finalTotal,

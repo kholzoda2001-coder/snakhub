@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { canOptimize } from '../lib/imageHosts';
 import { stockLabel } from '../lib/stock';
+import { useLanguage } from '../context/LanguageContext';
 
 // How many cards a row shows before "Show More" is offered. On the grid this is
 // exactly one full row on desktop and two rows of two on a phone.
@@ -11,6 +12,7 @@ const INITIAL_CARDS = 4;
 
 export default function ProductList({ productsData, activeCategory, searchQuery, addToCart, toggleWishlist, wishlist, title, categorySlug, eager = false }: any) {
   const [expanded, setExpanded] = useState(false);
+  const { t } = useLanguage();
 
   const displayTitle = title || "Hot Picks";
   const [firstWord, ...restWords] = displayTitle.split(" ");
@@ -30,11 +32,11 @@ export default function ProductList({ productsData, activeCategory, searchQuery,
     <section className="shop-section">
       <div className="sec-head">
         <h2 className="sec-title">{firstWord} {restTitle && <span>{restTitle}</span>}</h2>
-        <a className="view-all" href={categorySlug ? `/category/${categorySlug}` : '#'}>View All</a>
+        <a className="view-all" href={categorySlug ? `/category/${categorySlug}` : '#'}>{t('nav.viewAll')}</a>
       </div>
 
       {filtered.length === 0 ? (
-        <div style={{ padding: '20px 16px', color: 'var(--text-muted)', fontSize: '14px', fontWeight: 600 }}>No products found 😅</div>
+        <div style={{ padding: '20px 16px', color: 'var(--text-muted)', fontSize: '14px', fontWeight: 600 }}>{t('product.none')} 😅</div>
       ) : (
         <>
           <div className="prod-grid">
@@ -72,12 +74,12 @@ export default function ProductList({ productsData, activeCategory, searchQuery,
                       <div className="prod-name">{p.name}</div>
                     </Link>
                     <div className="prod-price-row">
-                      <div className="prod-price">{p.price} AED</div>
-                      {p.oldPrice && <div className="prod-old">{p.oldPrice} AED</div>}
+                      <div className="prod-price">{p.price} {t('product.currency')}</div>
+                      {p.oldPrice && <div className="prod-old">{p.oldPrice} {t('product.currency')}</div>}
                     </div>
-                    <div className={`prod-stock ${stock.tone}`}>{stock.text}</div>
+                    <div className={`prod-stock ${stock.tone}`}>{t(stock.key, stock.vars)}</div>
                     <button className="atc-btn" onClick={() => addToCart(p)} disabled={p.soldOut}>
-                      {p.soldOut ? 'Out of Stock' : '🛒 Add to Cart'}
+                      {p.soldOut ? t('product.outOfStock') : `🛒 ${t('product.addToCart')}`}
                     </button>
                   </div>
                 </div>
@@ -93,7 +95,7 @@ export default function ProductList({ productsData, activeCategory, searchQuery,
                 onClick={() => setExpanded(v => !v)}
                 aria-expanded={expanded}
               >
-                {expanded ? 'Show Less' : `Show More (${hiddenCount})`}
+                {expanded ? t('product.showLess') : t('product.showMore', { n: hiddenCount })}
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={expanded ? 'flip' : ''}>
                   <path d="m6 9 6 6 6-6" />
                 </svg>

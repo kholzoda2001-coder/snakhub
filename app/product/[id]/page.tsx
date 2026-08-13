@@ -7,6 +7,8 @@ import ShopShell from '../../../components/ShopShell';
 import Footer from '../../../components/Footer';
 import { useCart } from '../../../context/CartContext';
 import { canOptimize } from '../../../lib/imageHosts';
+import Loader from '../../../components/Loader';
+import { useLanguage } from '../../../context/LanguageContext';
 import { products } from '../../../data/products'; // fallback data
 
 export default function ProductDetailPage() {
@@ -17,6 +19,7 @@ export default function ProductDetailPage() {
   const [related, setRelated] = useState<any[]>([]);
   const [qty, setQty] = useState(1);
   const { addToCart, updateQty, wishlist, toggleWishlist } = useCart();
+  const { t } = useLanguage();
   const [isAdding, setIsAdding] = useState(false);
 
   useEffect(() => {
@@ -50,7 +53,7 @@ export default function ProductDetailPage() {
     if (id) fetchProduct();
   }, [id, router]);
 
-  if (!product) return <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading...</div>;
+  if (!product) return <Loader full />;
 
   const inWL = wishlist.has(product.id);
 
@@ -93,7 +96,9 @@ export default function ProductDetailPage() {
                     sizes="(min-width:768px) 400px, 100vw"
                     priority
                     unoptimized={!canOptimize(activeImg || product.img)}
-                    style={{ objectFit: 'cover' }}
+                    // Whole product visible in a square frame, same rule as the
+                    // cards — cropping a tall can here looked like a mistake.
+                    style={{ objectFit: 'contain', padding: '16px' }}
                   />
                 )}
               </div>
@@ -124,7 +129,7 @@ export default function ProductDetailPage() {
                         height={70}
                         sizes="70px"
                         unoptimized={!canOptimize(img)}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '4px' }}
                       />
                     </button>
                   ))}
@@ -149,10 +154,10 @@ export default function ProductDetailPage() {
                 // as sold out.
                 const dot = product.soldOut ? 'var(--danger)' : (typeof product.stockLeft === 'number' && product.stockLeft <= 5 ? 'var(--orange)' : '#10b981');
                 const text = product.soldOut
-                  ? 'Out of Stock'
+                  ? t('product.outOfStock')
                   : typeof product.stockLeft === 'number' && product.stockLeft <= 5
-                    ? `Only ${product.stockLeft} left — order soon`
-                    : 'In Stock & Ready to Ship';
+                    ? t('product.orderSoon', { n: product.stockLeft })
+                    : t('product.readyToShip');
                 return (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: dot, fontWeight: 800, fontSize: '14px', marginTop: '4px' }}>
                     <span style={{ display: 'inline-block', width: '8px', height: '8px', background: dot, borderRadius: '50%', boxShadow: `0 0 8px ${dot}` }}></span>
@@ -197,7 +202,7 @@ export default function ProductDetailPage() {
                   onMouseOver={e => { if(!isAdding) e.currentTarget.style.borderColor = 'var(--orange)'; }}
                   onMouseOut={e => { if(!isAdding) e.currentTarget.style.borderColor = 'var(--border)'; }}
                 >
-                  {isAdding ? '✓ Added' : '🛒 Cart'}
+                  {isAdding ? `✓ ${t('product.added')}` : `🛒 ${t('product.cart')}`}
                 </button>
 
                 {/* Buy Now Button */}
@@ -228,14 +233,32 @@ export default function ProductDetailPage() {
                   onMouseOver={e => { if (!product.soldOut) e.currentTarget.style.transform = 'translateY(-2px)'; }}
                   onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}
                 >
-                  {product.soldOut ? 'Out of Stock' : '⚡ Buy Now'}
+                  {product.soldOut ? t('product.outOfStock') : `⚡ ${t('product.buyNow')}`}
                 </button>
               </div>
+
+              {/* Trust grid — sits between the buy buttons and the wholesale
+                  block. "3+ boxes" matches FREE_SHIPPING_MIN_QTY in lib/pricing.ts,
+                  so the promise here and the cart can never disagree. */}
+              <div className="trust-grid">
+                {[
+                  ['🚚', 'trust.freeDelivery', 'trust.freeDeliverySub'],
+                  ['📅', 'trust.expiry', 'trust.expirySub'],
+                  ['💵', 'trust.cod', 'trust.codSub'],
+                  ['💯', 'trust.original', 'trust.originalSub'],
+                ].map(([emoji, title, sub]) => (
+                  <div className="trust-item" key={title}>
+                    <span className="ti-emoji">{emoji}</span>
+                    <span className="ti-text">{t(title)}<span className="ti-sub">{t(sub)}</span></span>
+                  </div>
+                ))}
+              </div>
+
               {/* Wholesale Contact */}
               <div style={{ marginTop: '24px', background: 'rgba(37, 211, 102, 0.05)', border: '1px solid rgba(37, 211, 102, 0.2)', padding: '16px', borderRadius: 'var(--r-md)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', transition: 'all 0.3s' }}>
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <span style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-primary)' }}>Need Wholesale Prices?</span>
-                  <span style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '2px' }}>Get special rates for bulk orders</span>
+                  <span style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-primary)' }}>{t('product.wholesaleTitle')}</span>
+                  <span style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '2px' }}>{t('product.wholesaleSub')}</span>
                 </div>
                 <a 
                   href={`https://wa.me/971561144518?text=Hello,%20I%20would%20like%20to%20know%20the%20wholesale%20price%20for%20${encodeURIComponent(product.name)}`}
@@ -246,29 +269,17 @@ export default function ProductDetailPage() {
                   onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
-                  WhatsApp
+                  {t('product.whatsapp')}
                 </a>
               </div>
 
-              {/* Trust Badges */}
-              <div style={{ display: 'flex', gap: '10px', marginTop: '16px', paddingTop: '20px', borderTop: '1px solid var(--border)', overflowX: 'auto', whiteSpace: 'nowrap', paddingBottom: '10px', scrollbarWidth: 'none' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 600, background: 'var(--bg-raised)', padding: '8px 12px', borderRadius: '20px' }}>
-                  <span style={{ fontSize: '16px' }}>🚚</span> Fast UAE Delivery
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 600, background: 'var(--bg-raised)', padding: '8px 12px', borderRadius: '20px' }}>
-                  <span style={{ fontSize: '16px' }}>💯</span> 100% Authentic
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 600, background: 'var(--bg-raised)', padding: '8px 12px', borderRadius: '20px' }}>
-                  <span style={{ fontSize: '16px' }}>🔒</span> Secure Checkout
-                </div>
-              </div>
             </div>
           </div>
 
           {/* Related Products Section */}
           {related.length > 0 && (
             <div style={{ marginTop: '60px' }}>
-              <h3 style={{ fontSize: '28px', fontWeight: 900, fontFamily: 'var(--font-d)', marginBottom: '16px', color: 'var(--text-primary)' }}>YOU MAY ALSO LIKE</h3>
+              <h3 className="sec-title" style={{ fontSize: '28px', marginBottom: '16px', color: 'var(--text-primary)' }}>{t('product.alsoLike')}</h3>
               <div className="carousel-outer" style={{ margin: '0 -20px' }}>
                 <div className="carousel-wrap">
                   <div className="carousel-track">

@@ -2,6 +2,7 @@ import React from 'react';
 import ShopShell from '../components/ShopShell';
 import Footer from '../components/Footer';
 import HomeContent from '../components/HomeContent';
+import HomeFaq from '../components/HomeFaq';
 import { getShopCategories, getShopProducts } from '../lib/catalog';
 
 // Rendered on the server so the browser gets finished HTML instead of firing
@@ -91,6 +92,7 @@ export default async function Home() {
         categories={categories}
         categoryGroups={groupByCategory(products, categories)}
       />
+      <HomeFaq />
       <Footer />
     </>
   );

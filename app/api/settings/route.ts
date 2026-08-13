@@ -11,7 +11,8 @@ const ALLOWED_KEYS = new Set([
   'ziina_test_mode',
   'telegram_bot_token',
   'telegram_chat_id',
-  'track_stock'
+  'track_stock',
+  'delivery_estimates'
 ]);
 
 export async function GET() {
