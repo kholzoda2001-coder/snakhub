@@ -1,18 +1,36 @@
-/* admin.css - Dark Mode Glassmorphism UI - Fully Responsive */
+/* admin.css — matches the storefront: same palette, same type, same radii. */
 :root {
-  --admin-bg: #0d0d0f;
-  --admin-card: #161619;
-  --admin-raised: #1e1e24;
-  --admin-border: rgba(255,255,255,0.07);
-  --admin-text: #f0f0f0;
-  --admin-muted: #9a9aaa;
+  /* Identical values to the shop's LIGHT theme in globals.css, so the panel
+     reads as the same product as the storefront and the dark-ink logo sits on
+     white the way it was drawn to. */
+  --admin-bg: #f5f4f1;
+  --admin-card: #ffffff;
+  --admin-raised: #eeede9;
+  --admin-border: rgba(0,0,0,0.08);
+  --admin-border-hover: rgba(0,0,0,0.16);
+  --admin-text: #111114;
+  --admin-muted: #666670;
   --admin-primary: #ff5c1a;
-  --admin-green: #a8ff3e;
-  --admin-danger: #ff3b5c;
-  --r-sm: 8px;
-  --r-md: 14px;
-  --r-lg: 20px;
+  --admin-primary-light: #ff7a40;
+  /* The shop's neon green is unreadable on white; this is its dark twin. */
+  --admin-green: #7ec820;
+  --admin-green-dark: #5a9416;
+  --admin-danger: #d92b48;
+  /* Matches --price in the storefront: deep enough to read on white. */
+  --admin-accent: #cc4400;
+  /* Small bold text on a tinted chip needs to go darker still to clear 4.5:1. */
+  --admin-accent-strong: #a83a00;
+  --admin-shadow: 0 4px 20px rgba(0,0,0,0.08);
+
+  /* The shop's radius scale, so panels here have the same silhouette. */
+  --r-xs: 8px;
+  --r-sm: 12px;
+  --r-md: 18px;
+  --r-lg: 26px;
+
+  --admin-ease: cubic-bezier(0.4, 0, 0.2, 1);
   --sidebar-width: 250px;
+  --sidebar-rail: 76px;
 }
 
 * {
@@ -22,9 +40,17 @@
 .admin-mode {
   background: var(--admin-bg);
   color: var(--admin-text);
-  font-family: 'Nunito', sans-serif;
+  /* The self-hosted families from next/font, same as the storefront. */
+  font-family: var(--font-body), 'Nunito', sans-serif;
   min-height: 100vh;
   display: flex;
+}
+
+/* Headings and figures use the shop's condensed display face. */
+.page-title,
+.dash-card .value,
+.admin-brand-tag {
+  font-family: var(--font-display), 'Barlow Condensed', sans-serif;
 }
 
 /* ─── Sidebar ─── */
@@ -39,15 +65,48 @@
   left: 0;
   top: 0;
   z-index: 100;
-  transition: transform 0.3s ease;
+  transition: transform 0.3s var(--admin-ease), width 0.25s var(--admin-ease);
+  overflow: hidden;
 }
+
+/* Collapsed rail: icons only, labels folded away. */
+.sidebar-collapsed .admin-sidebar { width: var(--sidebar-rail); }
+.sidebar-collapsed .nav-label,
+.sidebar-collapsed .admin-brand-tag { display: none; }
+.sidebar-collapsed .admin-brand { justify-content: center; padding: 18px 8px; }
+.sidebar-collapsed .admin-brand-mark img { max-width: 52px; padding: 4px; }
+.sidebar-collapsed .admin-nav a,
+.sidebar-collapsed .sidebar-collapse-btn { justify-content: center; padding-left: 0; padding-right: 0; }
+
+.sidebar-collapse-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 8px 10px 14px;
+  padding: 11px 14px;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--admin-muted);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s var(--admin-ease), color 0.2s var(--admin-ease);
+}
+.sidebar-collapse-btn:hover { background: var(--admin-raised); color: var(--admin-text); }
+
+.nav-icon { flex-shrink: 0; width: 22px; text-align: center; font-size: 16px; line-height: 1; }
+.nav-label { white-space: nowrap; overflow: hidden; }
+
+.sidebar-close { display: none; }
 
 .admin-brand {
   padding: 20px 24px;
   font-family: 'Barlow Condensed', sans-serif;
   font-size: 22px;
   font-weight: 900;
-  color: #fff;
+  color: var(--admin-text);
   border-bottom: 1px solid var(--admin-border);
   display: flex;
   justify-content: space-between;
@@ -56,6 +115,30 @@
 .admin-brand em {
   color: var(--admin-primary);
   font-style: normal;
+}
+.admin-brand-mark {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  min-width: 0;
+}
+/* The sidebar is white now, so the dark-ink wordmark sits directly on it —
+   the chip it used to need on the dark theme is gone. */
+.admin-brand-mark img {
+  height: 34px;
+  width: auto;
+  max-width: 158px;
+  object-fit: contain;
+  display: block;
+}
+.admin-brand-tag {
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--admin-primary);
+  flex-shrink: 0;
 }
 
 .admin-nav {
@@ -80,10 +163,21 @@
   transition: all 0.2s ease;
 }
 
-.admin-nav a:hover,
+.admin-nav a:hover {
+  background: var(--admin-raised);
+  color: var(--admin-accent-strong);
+}
+/* The current page gets a solid marker, not just a hover tint — previously
+   hover and active looked identical, so you could not tell where you were.
+   The bar stays brand orange; the label goes darker so it stays readable. */
 .admin-nav a.active {
   background: var(--admin-raised);
-  color: var(--admin-primary);
+  color: var(--admin-accent-strong);
+  box-shadow: inset 3px 0 0 var(--admin-primary);
+}
+.admin-nav .nav-external {
+  margin-top: auto;
+  color: var(--admin-muted);
 }
 
 /* ─── Main Layout ─── */
@@ -94,13 +188,16 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
+  transition: margin-left 0.25s var(--admin-ease);
 }
+.sidebar-collapsed .admin-main { margin-left: var(--sidebar-rail); }
 
 /* ─── Top Nav ─── */
 .admin-topnav {
   height: 64px;
-  background: rgba(22, 22, 25, 0.9);
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--admin-border);
   display: flex;
   align-items: center;
@@ -114,7 +211,7 @@
 .admin-search input {
   background: var(--admin-raised);
   border: 1px solid var(--admin-border);
-  color: #fff;
+  color: var(--admin-text);
   padding: 9px 16px;
   border-radius: 50px;
   outline: none;
@@ -142,6 +239,147 @@
   object-fit: cover;
 }
 
+/* Initials instead of a photo: no external request, and no stranger's face. */
+.admin-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 2px solid var(--admin-primary);
+  background: var(--admin-raised);
+  /* Deepened from the brand orange so the initials read on a pale chip. */
+  color: var(--admin-accent-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display), 'Barlow Condensed', sans-serif;
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+
+/* ─── Top-bar search results ─── */
+.admin-search-results {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: min(420px, 78vw);
+  max-height: 60vh;
+  overflow-y: auto;
+  background: var(--admin-card);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--r-md);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+  z-index: 300;
+  padding: 6px;
+}
+.asr-head {
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--admin-muted);
+  padding: 8px 10px 4px;
+}
+.asr-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 10px;
+  border-radius: var(--r-sm);
+  text-decoration: none;
+  color: var(--admin-text);
+  font-size: 13.5px;
+}
+.asr-row:hover { background: var(--admin-raised); }
+.asr-main { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.asr-meta { color: var(--admin-muted); font-size: 12px; white-space: nowrap; flex-shrink: 0; }
+.asr-empty { padding: 16px 12px; font-size: 13px; color: var(--admin-muted); text-align: center; }
+
+/* ─── Invoice ─── */
+.invoice {
+  background: #fff;
+  color: #111;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--r-md);
+  padding: 32px;
+  max-width: 820px;
+}
+.invoice-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  flex-wrap: wrap;
+  border-bottom: 2px solid #111;
+  padding-bottom: 16px;
+}
+.invoice-brand {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 30px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+.invoice-no {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+}
+.invoice-sub { font-size: 12px; color: #555; margin-top: 2px; }
+.invoice-cols {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 24px;
+  padding: 20px 0;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.invoice-label {
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #777;
+  margin-bottom: 4px;
+}
+.invoice-strong { font-weight: 800; font-size: 14px; }
+.invoice-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.invoice-table th {
+  text-align: left;
+  border-bottom: 1px solid #ccc;
+  padding: 8px 6px;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #777;
+}
+.invoice-table td { padding: 9px 6px; border-bottom: 1px solid #eee; }
+.invoice-totals {
+  margin-left: auto;
+  width: min(300px, 100%);
+  font-size: 13px;
+  padding-top: 12px;
+}
+.invoice-totals > div { display: flex; justify-content: space-between; padding: 4px 6px; }
+.invoice-grand {
+  border-top: 2px solid #111;
+  margin-top: 6px;
+  padding-top: 8px !important;
+  font-weight: 900;
+  font-size: 16px;
+}
+.invoice-foot { margin-top: 26px; font-size: 11px; color: #777; text-align: center; }
+
+/* Only the invoice reaches the printer. */
+@media print {
+  .admin-sidebar, .admin-topnav, .no-print { display: none !important; }
+  .admin-content, .admin-main, body { padding: 0 !important; margin: 0 !important; background: #fff !important; }
+  .invoice { border-radius: 0; padding: 0; max-width: none; }
+  @page { margin: 16mm; }
+}
+
 /* ─── Content Area ─── */
 .admin-content {
   padding: 28px;
@@ -165,11 +403,15 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  transition: transform 0.3s ease, border-color 0.3s ease;
+  /* On a white page, cards need a shadow to separate from the background —
+     a border alone reads as flat. */
+  box-shadow: var(--admin-shadow);
+  transition: transform 0.25s var(--admin-ease), border-color 0.25s var(--admin-ease), box-shadow 0.25s var(--admin-ease);
 }
 .dash-card:hover {
   transform: translateY(-4px);
   border-color: var(--admin-primary);
+  box-shadow: 0 10px 28px rgba(255,92,26,0.16);
 }
 
 .dash-card h3 {
@@ -181,10 +423,10 @@
 }
 
 .dash-card .value {
-  font-size: 28px;
-  font-weight: 800;
-  font-family: 'Barlow Condensed', sans-serif;
-  color: #fff;
+  font-size: 32px;
+  font-weight: 900;
+  line-height: 1.05;
+  color: var(--admin-text);
 }
 
 /* ─── Tables ─── */
@@ -192,6 +434,7 @@
   background: var(--admin-card);
   border: 1px solid var(--admin-border);
   border-radius: var(--r-lg);
+  box-shadow: var(--admin-shadow);
   overflow: hidden;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
@@ -221,13 +464,14 @@
   top: 0;
 }
 
+/* Was a white tint, invisible on a white table. */
 .admin-table tbody tr:hover {
-  background: rgba(255,255,255,0.02);
+  background: rgba(0,0,0,0.025);
 }
 
 .action-btn {
   background: var(--admin-raised);
-  color: #fff;
+  color: var(--admin-text);
   border: none;
   padding: 6px 12px;
   border-radius: var(--r-sm);
@@ -249,9 +493,10 @@
   flex-wrap: wrap;
 }
 .page-title {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 28px;
-  font-weight: 800;
+  font-size: 30px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
   margin: 0;
 }
 
@@ -280,9 +525,17 @@
   text-transform: uppercase;
   white-space: nowrap;
 }
-.status-badge.pending  { background: rgba(255,165,0,0.15); color: orange; }
-.status-badge.shipped  { background: rgba(168,255,62,0.15); color: var(--admin-green); }
-.status-badge.delivered{ background: rgba(255,255,255,0.08); color: #fff; }
+/* Covers the payment states the checkout actually produces. "shipped" and
+   "delivered" were styled but are fulfilment values, which live in their own
+   column now — so an unpaid order no longer rendered as an unstyled grey pill. */
+/* Text colours darkened for the white theme — the previous values were tuned
+   for a dark panel and "delivered" was white text on a white tint. */
+.status-badge.pending          { background: rgba(217,119,6,0.14);  color: #94430a; }
+.status-badge.pending-payment  { background: rgba(217,119,6,0.14);  color: #94430a; }
+.status-badge.paid             { background: rgba(16,185,129,0.16); color: #0d6b47; }
+.status-badge.failed           { background: rgba(217,43,72,0.13);  color: #b01a37; }
+.status-badge.shipped          { background: rgba(126,200,32,0.20); color: #3d640f; }
+.status-badge.delivered        { background: rgba(0,0,0,0.06);      color: #3a3a42; }
 
 /* ─── Grid helpers ─── */
 .grid-2col {
@@ -299,7 +552,7 @@
   display: none;
   background: transparent;
   border: none;
-  color: #fff;
+  color: var(--admin-text);
   font-size: 22px;
   cursor: pointer;
   padding: 4px 8px;
@@ -343,10 +596,36 @@
     box-shadow: none;
   }
 
+  /* On a phone the drawer is always full width — the desktop rail would leave
+     a useless 76px strip pinned over the content. */
+  .sidebar-collapsed .admin-sidebar { width: var(--sidebar-width); }
+  .sidebar-collapsed .nav-label,
+  .sidebar-collapsed .admin-brand-tag { display: inline; }
+  .sidebar-collapsed .admin-brand { justify-content: space-between; padding: 20px 24px; }
+  .sidebar-collapsed .admin-brand-mark img { max-width: 150px; padding: 5px 8px; }
+  .sidebar-collapsed .admin-nav a { justify-content: flex-start; padding-left: 14px; padding-right: 14px; }
+  .sidebar-collapsed .admin-main { margin-left: 0; }
+  /* The collapse control is desktop-only; the drawer has its own × */
+  .sidebar-collapse-btn { display: none; }
+  .sidebar-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border: none;
+    border-radius: 50%;
+    background: var(--admin-raised);
+    color: var(--admin-text);
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+  }
+
   /* Sidebar: slide in when open */
   .admin-sidebar.open {
     transform: translateX(0);
-    box-shadow: 4px 0 30px rgba(0,0,0,0.5);
+    box-shadow: 4px 0 30px rgba(0,0,0,0.18);
   }
 
   /* Main content: no left margin on mobile */

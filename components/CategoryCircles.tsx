@@ -2,13 +2,14 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { canOptimize } from '../lib/imageHosts';
+import type { ShopCategory } from '../lib/types';
 
 const FALLBACK_IMG = 'https://images.unsplash.com/photo-1566478989037-e924e50cb0c2?w=200&q=80';
 // The circle is 72px across; `sizes` below lets the browser pick the right
 // candidate for its own pixel density rather than always taking the 2x one.
 const CIRCLE_PX = 72;
 
-export default function CategoryCircles({ categories = [] }: { categories?: any[] }) {
+export default function CategoryCircles({ categories = [] }: { categories?: ShopCategory[] }) {
   if (categories.length === 0) return null;
 
   return (

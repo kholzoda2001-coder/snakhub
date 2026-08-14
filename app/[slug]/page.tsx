@@ -1,30 +1,20 @@
 import React from 'react';
+import { notFound } from 'next/navigation';
 import { prisma } from '../../lib/prisma';
 import ShopShell from '../../components/ShopShell';
 import Footer from '../../components/Footer';
 
 export default async function DynamicPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  
-  // Prevent catching admin routes or api routes
-  if (slug === 'admin' || slug === 'api') {
-    return null; 
-  }
 
   const page = await prisma.page.findUnique({
     where: { slug }
   });
 
+  // A missing page has to answer 404, not 200 with "Page not found" in the
+  // body — a 200 tells Google every mistyped URL is a real page worth indexing.
   if (!page) {
-    return (
-      <>
-        <ShopShell />
-        <div style={{ maxWidth: '800px', margin: '100px auto', padding: '20px', minHeight: '50vh', textAlign: 'center' }}>
-          <h1 style={{ fontSize: '24px', fontWeight: 800 }}>Page not found</h1>
-        </div>
-        <Footer />
-      </>
-    );
+    notFound();
   }
 
   return (

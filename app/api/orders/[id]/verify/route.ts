@@ -20,7 +20,8 @@ export async function GET(req: Request, context: { params: Promise<{ id: string 
       id: orderId,
       status,
       total: order.total,
-      isOnline: Boolean(order.paymentIntentId)
+      isOnline: Boolean(order.paymentIntentId),
+      isWholesale: Boolean(order.companyId)
     });
 
     if (order.status !== 'Pending Payment' || !order.paymentIntentId) {

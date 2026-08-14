@@ -1,8 +1,11 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
+import { canOptimize } from '../lib/imageHosts';
+import type { ShopBanner } from '../lib/types';
 
-export default function Hero({ banners: bannersProp = [] }: { banners?: any[] }) {
+export default function Hero({ banners: bannersProp = [] }: { banners?: ShopBanner[] }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const banners = bannersProp.filter((b) => b.isActive);
 
@@ -14,30 +17,14 @@ export default function Hero({ banners: bannersProp = [] }: { banners?: any[] })
     return () => clearInterval(interval);
   }, [banners.length]);
 
-  if (banners.length === 0) {
-    // Default fallback if no banners exist
-    return (
-      <section className="hero" id="home">
-        <div className="hero-glow"></div>
-        <div className="hero-grid"></div>
-        <div className="hero-content">
-          <div className="hero-eyebrow">New Drop</div>
-          <h1 className="hero-title">Monster<em>Ultra</em>Zero</h1>
-          <p className="hero-desc">Zero sugar. Zero compromise. Maximum energy to own every moment.</p>
-          <a href="#shop" className="hero-cta">
-            Shop Now
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-          </a>
-        </div>
-        <div className="hero-img-default">
-          <img src="https://images.unsplash.com/photo-1622543925917-763c34d1a86e?w=500&q=85" alt="Monster Energy" />
-        </div>
-        <span className="hero-badge">2026 Edition</span>
-      </section>
-    );
-  }
+  // Switching a banner off used to leave the strip parked on a slide that no
+  // longer exists, showing an empty panel until the timer came round again.
+  const activeIndex = banners.length > 0 ? currentIndex % banners.length : 0;
 
-  const currentBanner = banners[currentIndex];
+  // No banners means no strip. There used to be a hard-coded "Monster Ultra
+  // Zero" placeholder here pointing at an Unsplash photo — real-looking
+  // marketing for a product the shop does not necessarily sell.
+  if (banners.length === 0) return null;
 
   return (
     <section
@@ -51,13 +38,23 @@ export default function Hero({ banners: bannersProp = [] }: { banners?: any[] })
       <div className="hero-grid"></div>
       
       {/* Added transition wrapper */}
-      <div style={{ position: 'absolute', inset: 0, display: 'flex', width: '100%', transition: 'transform 0.5s ease', transform: `translateX(-${currentIndex * 100}%)` }}>
-        {banners.map((banner, index) => (
+      <div style={{ position: 'absolute', inset: 0, display: 'flex', width: '100%', transition: 'transform 0.5s ease', transform: `translateX(-${activeIndex * 100}%)` }}>
+        {banners.map((banner) => (
           <div key={banner.id} style={{ minWidth: '100%', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}>
             
-            {/* ALWAYS treat image as full background */}
+            {/* ALWAYS treat image as full background. Banner images can be an
+                external URL or a base64 blob, so optimisation is only asked
+                for on hosts next.config.ts actually allows. */}
             <div style={{ position: 'absolute', inset: 0, zIndex: 1 }}>
-              <img src={banner.img} alt="Banner" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }} />
+              <Image
+                src={banner.img}
+                alt={banner.title || banner.eyebrow || 'Banner'}
+                fill
+                sizes="100vw"
+                priority
+                unoptimized={!canOptimize(banner.img)}
+                style={{ objectFit: 'cover', objectPosition: 'center' }}
+              />
             </div>
 
             {/* If there is text, add a subtle gradient overlay so text is readable */}
@@ -93,7 +90,7 @@ export default function Hero({ banners: bannersProp = [] }: { banners?: any[] })
               onClick={() => setCurrentIndex(index)}
               style={{
                 width: '10px', height: '10px', borderRadius: '50%', border: 'none', cursor: 'pointer',
-                background: index === currentIndex ? 'var(--primary)' : 'rgba(255,255,255,0.3)',
+                background: index === activeIndex ? 'var(--primary)' : 'rgba(255,255,255,0.3)',
                 transition: 'background 0.3s ease'
               }}
               aria-label={`Go to slide ${index + 1}`}

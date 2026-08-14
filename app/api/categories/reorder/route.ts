@@ -11,7 +11,7 @@ export async function PUT(req: Request) {
     }
 
     // Execute bulk update using transactions
-    const queries = items.map((item: any) => 
+    const queries = (items as Array<{ id: number; order: number }>).map((item) =>
       prisma.category.update({
         where: { id: item.id },
         data: { order: item.order }
@@ -22,6 +22,7 @@ export async function PUT(req: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
+    console.error('Failed to reorder categories:', error);
     return NextResponse.json({ error: "Failed to reorder categories" }, { status: 500 });
   }
 }

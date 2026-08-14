@@ -1,9 +1,10 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import { uploadImage } from '../../../lib/uploadImage';
+import { errorMessage, type ShopBanner } from '../../../lib/types';
 
 export default function AdminBanners() {
-  const [banners, setBanners] = useState<any[]>([]);
+  const [banners, setBanners] = useState<ShopBanner[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
   const [formData, setFormData] = useState({ title: '', eyebrow: '', desc: '', img: '', badge: '', link: '', isActive: true });
@@ -15,7 +16,9 @@ export default function AdminBanners() {
     try {
       const res = await fetch('/api/banners');
       const data = await res.json();
-      setBanners(data);
+      // A failed read returns {error}, not an array — assigning it straight to
+      // state used to crash the page on the next .map().
+      setBanners(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -24,6 +27,8 @@ export default function AdminBanners() {
   };
 
   useEffect(() => {
+    // Initial load: the rows arrive from the network, so the state necessarily lands after mount.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchBanners();
   }, []);
 
@@ -34,8 +39,8 @@ export default function AdminBanners() {
       const url = await uploadImage(e.target.files[0]);
       setFormData(prev => ({ ...prev, img: url }));
       alert('Image uploaded successfully!');
-    } catch (err: any) {
-      alert(err.message || 'Upload failed');
+    } catch (err) {
+      alert(errorMessage(err, 'Upload failed'));
     } finally {
       setUploadingImg(false);
     }
@@ -44,22 +49,26 @@ export default function AdminBanners() {
   const handleDelete = async (id: number) => {
     if (!confirm('Are you sure you want to delete this banner?')) return;
     try {
-      await fetch(`/api/banners/${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/banners/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('delete rejected');
       fetchBanners();
     } catch (err) {
+      console.error('Failed to delete banner:', err);
       alert('Failed to delete banner');
     }
   };
 
-  const handleToggleStatus = async (banner: any) => {
+  const handleToggleStatus = async (banner: ShopBanner) => {
     try {
-      await fetch(`/api/banners/${banner.id}`, {
+      const res = await fetch(`/api/banners/${banner.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ isActive: !banner.isActive })
       });
+      if (!res.ok) throw new Error('toggle rejected');
       fetchBanners();
     } catch (err) {
+      console.error('Failed to update status:', err);
       alert('Failed to update status');
     }
   };
@@ -67,29 +76,36 @@ export default function AdminBanners() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      if (editingId) {
-        await fetch(`/api/banners/${editingId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData)
-        });
-      } else {
-        await fetch('/api/banners', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData)
-        });
+      // The response used to be ignored: a rejected save closed the form and
+      // looked identical to a successful one.
+      const res = editingId
+        ? await fetch(`/api/banners/${editingId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+          })
+        : await fetch('/api/banners', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+          });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error || 'save rejected');
       }
+
       setIsAdding(false);
       setEditingId(null);
       setFormData({ title: '', eyebrow: '', desc: '', img: '', badge: '', link: '', isActive: true });
       fetchBanners();
     } catch (err) {
-      alert('Failed to save banner');
+      console.error('Failed to save banner:', err);
+      alert(`Failed to save banner — your changes are still in the form.\n\n${errorMessage(err, 'The server rejected it.')}`);
     }
   };
 
-  const editBanner = (p: any) => {
+  const editBanner = (p: ShopBanner) => {
     setFormData({
       title: p.title,
       eyebrow: p.eyebrow || '',

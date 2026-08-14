@@ -1,3 +1,5 @@
+import { cookies } from 'next/headers';
+
 export const SESSION_COOKIE = 'sh_admin';
 export const SESSION_MAX_AGE = 60 * 60 * 12; // 12 hours
 
@@ -52,4 +54,11 @@ export function checkAdminPassword(password: unknown) {
   const expected = process.env.ADMIN_PASSWORD;
   if (!expected || typeof password !== 'string') return false;
   return safeEqual(password, expected);
+}
+
+/** For route handlers that manage wholesale companies — real data, so unlike
+ *  most admin routes in this codebase, these actually check the session. */
+export async function isAdminAuthenticated() {
+  const store = await cookies();
+  return verifySessionToken(store.get(SESSION_COOKIE)?.value);
 }

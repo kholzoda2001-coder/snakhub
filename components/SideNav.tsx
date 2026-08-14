@@ -2,10 +2,16 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useLanguage } from '../context/LanguageContext';
+import { isWholesaleHiddenCategory, useWholesale } from '../context/WholesaleContext';
+import type { ShopCategory } from '../lib/types';
 
-export default function SideNav({ isMenuOpen, toggleMenu }: any) {
-  const [categories, setCategories] = React.useState<any[]>([]);
+export default function SideNav({ isMenuOpen, toggleMenu }: { isMenuOpen: boolean; toggleMenu: () => void }) {
+  const { t } = useLanguage();
+  const { company } = useWholesale();
+  const [categories, setCategories] = React.useState<ShopCategory[]>([]);
   const loadedRef = React.useRef(false);
+  const visibleCategories = categories.filter((c) => !isWholesaleHiddenCategory(c.slug, company));
 
   // The menu is hidden on first paint, so its categories are fetched only once
   // the shopper actually opens it.
@@ -49,31 +55,34 @@ export default function SideNav({ isMenuOpen, toggleMenu }: any) {
         </div>
         <div className="side-links">
           <Link href="/" onClick={toggleMenu}>
-            <span className="snl-icon">🏠</span> <span>Home</span>
+            <span className="snl-icon">🏠</span> <span>{t('nav.home')}</span>
           </Link>
 
-          <div className="side-group-label">Categories</div>
+          <div className="side-group-label">{t('nav.categories')}</div>
 
-          {categories.map(c => (
+          {visibleCategories.map(c => (
             <Link key={c.id} href={`/category/${c.slug}`} onClick={toggleMenu}>
               <span className="snl-icon">{c.icon || '📦'}</span> <span>{c.name}</span>
             </Link>
           ))}
 
-          <div className="side-group-label">My Account</div>
+          <div className="side-group-label">{t('nav.myAccount')}</div>
 
           <Link href="/wishlist" onClick={toggleMenu}>
-            <span className="snl-icon">❤️</span> <span>My Wishlist</span>
+            <span className="snl-icon">❤️</span> <span>{t('nav.wishlist')}</span>
+          </Link>
+          <Link href="/orders" onClick={toggleMenu}>
+            <span className="snl-icon">📦</span> <span>{t('nav.orders')}</span>
+          </Link>
+          <Link href={company ? '/wholesale/orders' : '/wholesale/login'} onClick={toggleMenu}>
+            <span className="snl-icon">🏢</span> <span>{company ? company.name : t('nav.wholesale')}</span>
           </Link>
           <a href="#" onClick={toggleMenu}>
-            <span className="snl-icon">📦</span> <span>My Orders</span>
-          </a>
-          <a href="#" onClick={toggleMenu}>
-            <span className="snl-icon">🎧</span> <span>Support / Chat</span>
+            <span className="snl-icon">🎧</span> <span>{t('nav.support')}</span>
           </a>
         </div>
         <div className="side-nav-footer">
-          © {new Date().getFullYear()} Snack Hub. All rights reserved.
+          © {new Date().getFullYear()} Snack Hub. {t('footer.rights')}
         </div>
       </nav>
     </>

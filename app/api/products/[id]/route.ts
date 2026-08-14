@@ -25,6 +25,7 @@ export async function GET(req: Request, context: { params: Promise<{ id: string 
 
     return NextResponse.json(formatted);
   } catch (error) {
+    console.error('Failed to fetch product:', error);
     return NextResponse.json({ error: "Failed to fetch product" }, { status: 500 });
   }
 }
@@ -39,6 +40,7 @@ export async function PUT(req: Request, context: { params: Promise<{ id: string 
     });
     return NextResponse.json(updatedProduct);
   } catch (error) {
+    console.error('Failed to update product:', error);
     return NextResponse.json({ error: "Failed to update product" }, { status: 500 });
   }
 }
@@ -51,6 +53,7 @@ export async function DELETE(req: Request, context: { params: Promise<{ id: stri
     });
     return NextResponse.json({ success: true });
   } catch (error) {
+    console.error('Failed to delete product:', error);
     return NextResponse.json({ error: "Failed to delete product" }, { status: 500 });
   }
 }

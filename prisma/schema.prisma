@@ -13,6 +13,9 @@ model Product {
   cat             String
   catLabel        String
   price           Float
+  // What the carton cost to buy. Gross profit is meaningless without it, and 0
+  // means "not recorded yet" rather than "free".
+  cost            Float    @default(0)
   oldPrice        Float?
   details         String?  @db.Text
   badge           String?
@@ -25,6 +28,8 @@ model Product {
   stock           Int      @default(0)
   desc            String   @db.Text
   createdAt       DateTime @default(now())
+
+  companyPrices   CompanyPrice[]
 }
 
 model Order {
@@ -34,9 +39,56 @@ model Order {
   address   String
   items           Json
   total           Float
+  // Payment state only: Pending, Pending Payment, Paid, Failed. Written by the
+  // checkout and Ziina flows — the admin must not overwrite it.
   status          String   @default("Pending")
+  // Delivery state, kept separate so marking an order shipped cannot erase the
+  // record that it was paid: Unfulfilled, Processing, Fulfilled, Cancelled.
+  fulfillment     String   @default("Unfulfilled")
   paymentIntentId String?  @db.VarChar(255)
+  // Set when the shop has chased an abandoned checkout, so the same customer
+  // is not messaged twice about the same order.
+  contactedAt     DateTime?
   createdAt       DateTime @default(now())
+
+  // Set only for wholesale orders placed by a logged-in company. Regular
+  // guest checkouts leave this null.
+  companyId       Int?
+  company         Company? @relation(fields: [companyId], references: [id])
+
+  @@index([companyId])
+}
+
+/**
+ * A wholesale buyer. The admin creates one login per company and sets its own
+ * price per product in CompanyPrice — everything else (cart, checkout,
+ * delivery) reuses the normal storefront flow.
+ */
+model Company {
+  id           Int      @id @default(autoincrement())
+  name         String
+  // Used for the admin's "message on WhatsApp" link, so it must stay in a
+  // wa.me-compatible format (digits, optionally with a leading +).
+  phone        String
+  username     String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+
+  prices       CompanyPrice[]
+  orders       Order[]
+}
+
+/** One company's negotiated price for one product. Absence means retail price applies. */
+model CompanyPrice {
+  id        Int     @id @default(autoincrement())
+  companyId Int
+  productId Int
+  price     Float
+
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, productId])
 }
 
 model Category {
@@ -46,6 +98,12 @@ model Category {
   icon      String?
   img       String?
   order     Int      @default(0)
+  // High-value lines (imported rarities) are not sent out on cash on delivery.
+  // Any cart containing one of these forces card payment for the whole order.
+  cardOnly  Boolean  @default(false)
+  // Overrides the emirate-based estimate — imported stock ships far slower than
+  // anything held locally, so the category wins over the delivery address.
+  deliveryEstimate String?
   createdAt DateTime @default(now())
 }
 
@@ -68,6 +126,23 @@ model Banner {
   link      String?
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
+}
+
+/**
+ * Money going out that is not stock: rent, salaries, delivery, marketing.
+ * `paidWith` is what keeps the cash and card balances honest — a cash expense
+ * reduces the cash drawer, a card one does not.
+ */
+model Expense {
+  id        Int      @id @default(autoincrement())
+  date      DateTime
+  category  String
+  amount    Float
+  paidWith  String   @default("cash")
+  note      String?  @db.Text
+  createdAt DateTime @default(now())
+
+  @@index([date])
 }
 
 model Settings {
