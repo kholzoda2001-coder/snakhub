@@ -29,6 +29,7 @@ function companyWhatsappLink(order: Order): string {
   return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
 }
 
+
 /**
  * A checkout that reached the payment step and never came back. The customer
  * wanted these — the phone number is already on the order, so one tap opens

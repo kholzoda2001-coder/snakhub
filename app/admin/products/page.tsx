@@ -549,6 +549,27 @@ export default function AdminProducts() {
               </span>
             </div>
             <div>
+              <label>Cost Price (what you paid)</label>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                value={formData.cost}
+                onChange={e => {
+                  const n = parseFloat(e.target.value);
+                  setFormData({ ...formData, cost: Number.isFinite(n) ? Math.max(0, n) : 0 });
+                }}
+                style={inputStyle}
+              />
+              <span style={{ fontSize: '12px', color: 'var(--admin-muted)', display: 'block', marginTop: '4px' }}>
+                {formData.cost > 0 && formData.price > 0 ? (
+                  <>Margin <strong>{(formData.price - formData.cost).toFixed(2)} AED</strong>
+                    {' '}({(((formData.price - formData.cost) / formData.price) * 100).toFixed(0)}%)
+                    {formData.cost >= formData.price && ' — you are selling at a loss'}</>
+                ) : 'Needed for profit reporting. Leave 0 if unknown.'}
+              </span>
+            </div>
+            <div>
               <label>Old Price (Optional)</label>
               <input
                 type="number"
