@@ -11,6 +11,11 @@ function isPublicRequest(pathname: string, method: string, search: URLSearchPara
   if (pathname === '/api/checkout-config') return true;
   if (pathname.startsWith('/api/images/')) return true;
 
+  // Wholesale companies authenticate with their own session (a separate cookie
+  // from the admin's), checked inside each of these routes — not the admin
+  // login this proxy otherwise requires.
+  if (pathname.startsWith('/api/wholesale/')) return true;
+
   // Customers place orders and check their own payment status.
   if (pathname === '/api/orders' && method === 'POST') return true;
   if (/^\/api\/orders\/\d+\/verify$/.test(pathname) && method === 'GET') return true;

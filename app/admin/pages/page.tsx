@@ -1,8 +1,9 @@
 'use client';
 import React, { useEffect, useState } from 'react';
+import { errorMessage, type ShopPage } from '../../../lib/types';
 
 export default function AdminPages() {
-  const [pages, setPages] = useState<any[]>([]);
+  const [pages, setPages] = useState<ShopPage[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
   const [formData, setFormData] = useState({ slug: '', title: '', content: '' });
@@ -12,7 +13,9 @@ export default function AdminPages() {
     try {
       const res = await fetch('/api/pages');
       const data = await res.json();
-      setPages(data);
+      // A failed read returns {error}, not an array — assigning it straight to
+      // state used to crash the page on the next .map().
+      setPages(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -21,15 +24,19 @@ export default function AdminPages() {
   };
 
   useEffect(() => {
+    // Initial load: the rows arrive from the network, so the state necessarily lands after mount.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchPages();
   }, []);
 
   const handleDelete = async (slug: string) => {
     if (!confirm('Are you sure you want to delete this page?')) return;
     try {
-      await fetch(`/api/pages/${slug}`, { method: 'DELETE' });
+      const res = await fetch(`/api/pages/${slug}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('delete rejected');
       fetchPages();
     } catch (err) {
+      console.error('Failed to delete page:', err);
       alert('Failed to delete page');
     }
   };
@@ -37,33 +44,44 @@ export default function AdminPages() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      if (editingSlug) {
-        await fetch(`/api/pages/${editingSlug}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData)
-        });
-      } else {
-        await fetch('/api/pages', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData)
-        });
+      // The response used to be ignored: a duplicate slug or a server error
+      // closed the form and looked exactly like a successful save.
+      const res = editingSlug
+        ? await fetch(`/api/pages/${editingSlug}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+          })
+        : await fetch('/api/pages', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+          });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error || 'save rejected');
       }
+
       setIsAdding(false);
       setEditingSlug(null);
       setFormData({ slug: '', title: '', content: '' });
       fetchPages();
     } catch (err) {
-      alert('Failed to save page');
+      console.error('Failed to save page:', err);
+      alert(
+        `Failed to save page — your changes are still in the form.\n\n` +
+        `${errorMessage(err, 'The server rejected it.')}\n\n` +
+        `A page slug must be unique; "${formData.slug}" may already exist.`
+      );
     }
   };
 
-  const editPage = (p: any) => {
+  const editPage = (p: ShopPage) => {
     setFormData({
       slug: p.slug,
       title: p.title,
-      content: p.content
+      content: p.content ?? ''
     });
     setEditingSlug(p.slug);
     setIsAdding(true);
@@ -124,7 +142,7 @@ export default function AdminPages() {
                 <tr key={p.id}>
                   <td style={{ fontWeight: 700 }}>{p.title}</td>
                   <td>/{p.slug}</td>
-                  <td>{new Date(p.updatedAt).toLocaleDateString()}</td>
+                  <td>{p.updatedAt ? new Date(p.updatedAt).toLocaleDateString() : '—'}</td>
                   <td>
                     <div style={{ display: 'flex', gap: '10px' }}>
                       <button onClick={() => editPage(p)} style={{ cursor: 'pointer', background: 'transparent', border: 'none', color: '#3b82f6', fontWeight: 600 }}>Edit</button>

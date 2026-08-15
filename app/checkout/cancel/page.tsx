@@ -2,6 +2,7 @@
 import React, { useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import ShopShell from '../../../components/ShopShell';
+import Loader from '../../../components/Loader';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 function CancelContent() {
@@ -80,7 +81,7 @@ export default function CheckoutCancelPage() {
   return (
     <>
       <ShopShell />
-      <Suspense fallback={<div style={{ minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>Loading...</div>}>
+      <Suspense fallback={<Loader full />}>
         <CancelContent />
       </Suspense>
     </>

@@ -2,14 +2,21 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useLanguage } from '../context/LanguageContext';
 
 // How far down the page the shrink is allowed to kick in, and how much
 // movement counts as a real scroll rather than trackpad/touch jitter.
 const SHRINK_AFTER = 60;
 const DIRECTION_THRESHOLD = 4;
 
-export default function Header({ toggleCart, toggleMenu, cartCount }: any) {
+export default function Header({ toggleCart, toggleMenu, toggleSearch, cartCount }: {
+  toggleCart: () => void;
+  toggleMenu: () => void;
+  toggleSearch: () => void;
+  cartCount: number;
+}) {
   const [shrunk, setShrunk] = useState(false);
+  const { t } = useLanguage();
 
   useEffect(() => {
     let lastY = window.scrollY;
@@ -47,12 +54,12 @@ export default function Header({ toggleCart, toggleMenu, cartCount }: any) {
     <>
       <header className="site-header">
         <div className="header-left">
-          <button className="menu-btn" onClick={toggleMenu} aria-label="Menu">
+          <button className="menu-btn" onClick={toggleMenu} aria-label={t('nav.menu')}>
             <span></span><span></span><span></span>
           </button>
         </div>
         <div className={`brand-logo${shrunk ? ' shrunk' : ''}`}>
-          <Link href="/" aria-label="Snack Hub home">
+          <Link href="/" aria-label={t('nav.home.aria')}>
             {/* On screen at ~150px wide; the source is 708px, so let the
                 optimizer serve a right-sized AVIF/WebP instead of 118KB PNG. */}
             {/* `sizes` is what tells the browser this is a ~200px slot. Without
@@ -62,10 +69,10 @@ export default function Header({ toggleCart, toggleMenu, cartCount }: any) {
           </Link>
         </div>
         <div className="header-right">
-          <button className="icon-btn" aria-label="Search">
+          <button className="icon-btn" onClick={toggleSearch} aria-label={t('nav.search')}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
           </button>
-          <button className="icon-btn" onClick={toggleCart} aria-label="Cart">
+          <button className="icon-btn" onClick={toggleCart} aria-label={t('nav.cart')}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
             <span className="hdr-badge" id="cartBadge">{cartCount}</span>
           </button>

@@ -1,7 +1,9 @@
 import { ImageResponse } from 'next/og';
 
-// Route segment config
-export const runtime = 'edge';
+// The edge runtime is deprecated in Next 16, and it was the one thing stopping
+// this icon from being generated once at build time — every request was
+// rendering the same 32px "SH" from scratch. On the default runtime it is
+// prerendered and served as a static file.
 
 // Image metadata
 export const size = {

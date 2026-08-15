@@ -1,11 +1,14 @@
 import { prisma } from './prisma';
 import { getSetting } from './settings';
 import { buildOrderMessage, sendTelegramNotification } from './telegram';
+import type { OrderLine } from './types';
 
 export type OrderItem = {
   id: number;
   name: string;
   price: number;
+  /** Buy price at the moment of sale. Absent on orders placed before costing existed. */
+  cost?: number;
   qty: number;
   catLabel: string;
   isOfferEligible: boolean;
@@ -27,7 +30,7 @@ export async function restoreStock(items: unknown) {
   }
   if (!Array.isArray(parsed)) return;
 
-  for (const item of parsed as any[]) {
+  for (const item of parsed as Array<Partial<OrderLine> & { quantity?: number }>) {
     const id = Number(item?.id);
     const qty = Number(item?.qty ?? item?.quantity);
     if (!Number.isInteger(id) || !Number.isFinite(qty) || qty < 1) continue;

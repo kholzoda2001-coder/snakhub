@@ -1,4 +1,5 @@
 import { getSettings } from './settings';
+import type { OrderLine } from './types';
 
 function escapeHtml(value: unknown) {
   return String(value ?? '')
@@ -18,8 +19,8 @@ export function formatOrderItems(items: unknown) {
   }
   if (!Array.isArray(parsed) || parsed.length === 0) return 'Items unavailable';
 
-  return parsed
-    .map((item: any) => `• ${item?.qty ?? item?.quantity ?? 1}x ${escapeHtml(item?.name)}`)
+  return (parsed as Array<Partial<OrderLine> & { quantity?: number }>)
+    .map((item) => `• ${item?.qty ?? item?.quantity ?? 1}x ${escapeHtml(item?.name)}`)
     .join('\n');
 }
 

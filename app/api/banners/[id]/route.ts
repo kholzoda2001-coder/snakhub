@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '../../../../lib/prisma';
+import { requireAdmin } from '../../../../lib/adminGuard';
 
 export async function PUT(req: Request, context: { params: Promise<{ id: string }> }) {
+  const denied = await requireAdmin();
+  if (denied) return denied;
+
   try {
     const params = await context.params;
     const id = parseInt(params.id);
@@ -12,11 +16,15 @@ export async function PUT(req: Request, context: { params: Promise<{ id: string 
     });
     return NextResponse.json(updatedBanner);
   } catch (error) {
+    console.error('Failed to update banner:', error);
     return NextResponse.json({ error: "Failed to update banner" }, { status: 500 });
   }
 }
 
 export async function DELETE(req: Request, context: { params: Promise<{ id: string }> }) {
+  const denied = await requireAdmin();
+  if (denied) return denied;
+
   try {
     const params = await context.params;
     const id = parseInt(params.id);
@@ -25,6 +33,7 @@ export async function DELETE(req: Request, context: { params: Promise<{ id: stri
     });
     return NextResponse.json({ success: true });
   } catch (error) {
+    console.error('Failed to delete banner:', error);
     return NextResponse.json({ error: "Failed to delete banner" }, { status: 500 });
   }
 }

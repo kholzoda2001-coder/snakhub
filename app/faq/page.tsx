@@ -1,28 +1,43 @@
 'use client';
 import React, { useState } from 'react';
+import Link from 'next/link';
 import ShopShell from '../../components/ShopShell';
 import Footer from '../../components/Footer';
 
+// Kept in step with the Terms of Sale: everything here is sold for export, so
+// nothing on this page may promise retail sale or delivery inside the UAE.
 const faqs = [
   {
-    q: "Do you offer same-day delivery?",
-    a: "Yes! We offer same-day delivery across Dubai for all orders placed before 8:00 PM. For other Emirates, delivery usually takes 1-2 business days."
+    q: "Who do you sell to?",
+    a: "We supply export buyers, resellers and distributors. Goods listed on snackhub.site are sold strictly for export and are not offered for retail sale, distribution, or consumption within the United Arab Emirates."
+  },
+  {
+    q: "Can I buy for use inside the UAE?",
+    a: "No. By placing an order you confirm the goods are being purchased for export to a destination outside the UAE. Our products are not registered or approved for retail sale within the UAE, and buying for resale inside the country falls outside our intended use. See our Terms of Sale for the full position."
+  },
+  {
+    q: "Who is responsible for import rules in the destination country?",
+    a: "The buyer. You are responsible for confirming the products may lawfully be imported, sold and consumed in your destination country, for obtaining any permits, licences or approvals required, and for meeting local labelling, health warning and age-restriction laws."
+  },
+  {
+    q: "How do I get a quote?",
+    a: "Email snackhub.store@gmail.com or use the WhatsApp button at the bottom right of the screen. Include the products and quantities you need and the destination country, and we will come back to you on availability and pricing."
   },
   {
     q: "What payment methods do you accept?",
-    a: "We currently accept Cash on Delivery (COD) and secure online card payments via Ziina (Visa, Mastercard, Apple Pay)."
+    a: "Cash on Delivery and secure online card payments via Ziina (Visa, Mastercard, Apple Pay). For larger export orders, contact us to agree payment terms before ordering."
   },
   {
     q: "Are the products authentic?",
-    a: "100% authentic. We source our energy drinks, protein powders, and snacks directly from authorized distributors and official brand partners globally."
+    a: "Yes. We source our energy drinks, protein products and snacks from authorised distributors and official brand partners."
   },
   {
-    q: "Can I return a product if I don't like it?",
-    a: "Due to health and safety regulations regarding food and beverages, we cannot accept returns for products unless they arrive damaged or expired. If you receive a damaged item, please contact our support team within 24 hours."
+    q: "What if an order arrives damaged?",
+    a: "Because these are food and beverage products, we cannot accept returns for change of mind. If goods arrive damaged or expired, contact us within 24 hours of delivery and we will put it right."
   },
   {
-    q: "Do you ship internationally?",
-    a: "Currently, we only ship within the United Arab Emirates (UAE). We are working hard to expand our delivery network across the GCC soon!"
+    q: "When will my order ship?",
+    a: "Shipping is arranged per order and depends on the quantity and destination. We confirm the timeline with you directly once your order is placed."
   }
 ];
 
@@ -96,9 +111,9 @@ export default function FAQPage() {
             <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '16px' }}>
               Our support team is always here to help you out.
             </p>
-            <a href="/contact" style={{ display: 'inline-block', background: 'var(--orange)', color: '#fff', padding: '10px 20px', borderRadius: '50px', fontWeight: 700, fontSize: '13px', textDecoration: 'none' }}>
+            <Link href="/contact" style={{ display: 'inline-block', background: 'var(--orange)', color: '#fff', padding: '10px 20px', borderRadius: '50px', fontWeight: 700, fontSize: '13px', textDecoration: 'none' }}>
               Contact Support
-            </a>
+            </Link>
           </div>
 
         </div>

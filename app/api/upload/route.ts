@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { requireAdmin } from '../../../lib/adminGuard';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,6 +11,11 @@ const MAX_BYTES = 8 * 1024 * 1024;
  * Admin-only: proxy.ts requires a session for this route.
  */
 export async function POST(req: Request) {
+  // Without this, an open upload endpoint spends the shop's ImgBB quota on
+  // whatever a stranger wants hosted.
+  const denied = await requireAdmin();
+  if (denied) return denied;
+
   try {
     const apiKey = process.env.IMGBB_API_KEY || process.env.NEXT_PUBLIC_IMGBB_API_KEY;
     if (!apiKey) {

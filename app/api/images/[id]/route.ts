@@ -54,6 +54,7 @@ export async function GET(req: Request, context: { params: Promise<{ id: string 
     });
 
   } catch (error) {
+    console.error('Failed to serve product image:', error);
     return new NextResponse('Error', { status: 500 });
   }
 }

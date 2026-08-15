@@ -7,25 +7,27 @@ import Footer from '../../components/Footer';
 import { useCart } from '../../context/CartContext';
 import { canOptimize } from '../../lib/imageHosts';
 import { stockLabel } from '../../lib/stock';
+import Loader from '../../components/Loader';
+import { useLanguage } from '../../context/LanguageContext';
+import { formatMoney, showsOldPrice } from '../../lib/pricing';
+import type { ShopProduct } from '../../lib/types';
 
 export default function WishlistPage() {
   const { wishlist, toggleWishlist, addToCart } = useCart();
-  const [productsData, setProductsData] = useState<any[]>([]);
+  const { t } = useLanguage();
+  const [productsData, setProductsData] = useState<ShopProduct[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // The demo catalogue in data/products.ts is never used as a fallback here:
+    // it holds products the shop does not stock, at prices it does not charge,
+    // and /api/orders rejects every one of them. An empty list is honest.
     fetch('/api/products')
       .then(res => res.json())
       .then(data => {
-        if (Array.isArray(data) && data.length > 0) {
-          setProductsData(data);
-        } else {
-          import('../../data/products').then(mod => setProductsData(mod.products));
-        }
+        if (Array.isArray(data)) setProductsData(data);
       })
-      .catch(() => {
-        import('../../data/products').then(mod => setProductsData(mod.products));
-      })
+      .catch(() => setProductsData([]))
       .finally(() => setLoading(false));
   }, []);
 
@@ -46,7 +48,7 @@ export default function WishlistPage() {
           </h1>
 
           {loading ? (
-            <div style={{ padding: '40px 0', textAlign: 'center', color: 'var(--text-muted)' }}>Loading...</div>
+            <Loader />
           ) : wishlistProducts.length === 0 ? (
             <div style={{ padding: '80px 0', textAlign: 'center' }}>
               <div style={{ fontSize: '48px', opacity: 0.5, marginBottom: '16px' }}>🤍</div>
@@ -65,7 +67,7 @@ export default function WishlistPage() {
               gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', 
               gap: '16px' 
             }}>
-              {wishlistProducts.map((p: any, i: number) => {
+              {wishlistProducts.map((p, i) => {
                 return (
                   <div key={p.id} className="product-card" style={{ margin: 0, width: '100%' }}>
                     <Link href={`/product/${p.id}`} className="prod-link" style={{ display: 'block', textDecoration: 'none', color: 'inherit' }}>
@@ -91,12 +93,12 @@ export default function WishlistPage() {
                         <div className="prod-name">{p.name}</div>
                       </Link>
                       <div className="prod-price-row">
-                        <div className="prod-price">{p.price} AED</div>
-                        {p.oldPrice && <div className="prod-old">{p.oldPrice} AED</div>}
+                        <div className="prod-price">{formatMoney(p.price)} {t('product.currency')}</div>
+                        {showsOldPrice(p.price, p.oldPrice) && <div className="prod-old">{formatMoney(p.oldPrice)} {t('product.currency')}</div>}
                       </div>
-                      <div className={`prod-stock ${stockLabel(p).tone}`}>{stockLabel(p).text}</div>
+                      <div className={`prod-stock ${stockLabel(p).tone}`}>{t(stockLabel(p).key, stockLabel(p).vars)}</div>
                       <button className="atc-btn" onClick={() => addToCart(p)} disabled={p.soldOut}>
-                        {p.soldOut ? 'Out of Stock' : '🛒 Add to Cart'}
+                        {p.soldOut ? t('product.outOfStock') : `🛒 ${t('product.addToCart')}`}
                       </button>
                     </div>
                   </div>

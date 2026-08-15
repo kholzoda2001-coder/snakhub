@@ -2,23 +2,16 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { calculateTotals } from '../lib/pricing';
+import type { CartItem, ShopProduct } from '../lib/types';
 
-type CartItem = {
-  id: number;
-  name: string;
-  price: number;
-  qty: number;
-  img: string;
-  catLabel: string;
-  isOfferEligible?: boolean;
-};
+export type { CartItem };
 
 type CartContextType = {
   cart: CartItem[];
   wishlist: Set<number>;
   isCartOpen: boolean;
   isMenuOpen: boolean;
-  addToCart: (product: any, openCart?: boolean) => void;
+  addToCart: (product: ShopProduct, openCart?: boolean) => void;
   removeFromCart: (id: number) => void;
   updateQty: (id: number, delta: number) => void;
   clearCart: () => void;
@@ -46,13 +39,27 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
+    // Corrupt storage must not take the shop down with it: the cart simply
+    // starts empty, and the next write replaces the bad value.
     const savedCart = localStorage.getItem('fuel_cart');
     if (savedCart) {
-      try { setCart(JSON.parse(savedCart)); } catch (e) {}
+      try {
+        const parsed = JSON.parse(savedCart);
+        // The saved cart lives in localStorage; reading it during render would not match the HTML the server sent.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        if (Array.isArray(parsed)) setCart(parsed);
+      } catch {
+        /* unreadable cart — start fresh */
+      }
     }
     const savedWishlist = localStorage.getItem('fuel_wishlist');
     if (savedWishlist) {
-      try { setWishlist(new Set(JSON.parse(savedWishlist))); } catch (e) {}
+      try {
+        const parsed = JSON.parse(savedWishlist);
+        if (Array.isArray(parsed)) setWishlist(new Set(parsed));
+      } catch {
+        /* unreadable wishlist — start fresh */
+      }
     }
     setHydrated(true);
   }, []);
@@ -68,13 +75,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('fuel_wishlist', JSON.stringify([...wishlist]));
   }, [wishlist, hydrated]);
 
-  const addToCart = (product: any, openCart: boolean = true) => {
+  const addToCart = (product: ShopProduct, openCart: boolean = true) => {
     setCart(prev => {
       const existing = prev.find(i => i.id === product.id);
       if (existing) {
         return prev.map(i => i.id === product.id ? { ...i, qty: i.qty + 1 } : i);
       }
-      return [...prev, { ...product, qty: 1 }];
+      return [...prev, { ...product, img: product.img ?? '', qty: 1 }];
     });
     if (openCart) {
       setIsCartOpen(true);

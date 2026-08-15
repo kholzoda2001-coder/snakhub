@@ -1,4 +1,5 @@
 import { getSettings } from './settings';
+import { prisma } from './prisma';
 
 const ZIINA_API = 'https://api-v2.ziina.com/api/payment_intent';
 
@@ -55,4 +56,37 @@ export function isPaidStatus(status: unknown) {
 
 export function isFailedStatus(status: unknown) {
   return status === 'CANCELED' || status === 'CANCELLED' || status === 'FAILED' || status === 'EXPIRED';
+}
+
+/**
+ * Ziina's published business rate for QR/link/NFC receipts: 2.6% + 1 AED,
+ * plus 5% VAT on the fee itself. Cards issued outside the UAE cost Ziina (and
+ * so us) an extra 1.5% that the payment intent does not expose, so this is a
+ * floor — the real deduction can run higher for non-AED cards.
+ */
+export function estimateZiinaFee(orderTotal: number): number {
+  const fee = orderTotal * 0.026 + 1;
+  return Math.round(fee * 1.05 * 100) / 100;
+}
+
+/**
+ * Books the estimated Ziina fee as a Payment Fees expense the first time an
+ * order is marked Fulfilled. Keyed by order id in the note (not a DB
+ * constraint) so re-toggling fulfillment on the same order cannot double-book
+ * it — the caller does not need to track whether this is a first transition.
+ */
+export async function logZiinaFeeOnce(order: { id: number; total: number; createdAt: Date }) {
+  const note = `Ziina fee — Order #${order.id}`;
+  const existing = await prisma.expense.findFirst({ where: { category: 'Payment Fees', note } });
+  if (existing) return;
+
+  await prisma.expense.create({
+    data: {
+      date: order.createdAt,
+      category: 'Payment Fees',
+      amount: estimateZiinaFee(order.total),
+      paidWith: 'card',
+      note,
+    },
+  });
 }

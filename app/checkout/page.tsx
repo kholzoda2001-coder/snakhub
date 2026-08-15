@@ -7,43 +7,81 @@ import Footer from '../../components/Footer';
 import Link from 'next/link';
 import Image from 'next/image';
 import { canOptimize } from '../../lib/imageHosts';
-
-const UAE_CITIES = [
-  'Dubai',
-  'Abu Dhabi',
-  'Sharjah',
-  'Ajman',
-  'Ras Al Khaimah',
-  'Fujairah',
-  'Umm Al Quwain'
-];
+import { formatMoney } from '../../lib/pricing';
+import { checkUaeMobile, formatUaeLocal, toE164, toLocalDigits } from '../../lib/phone';
+import { saveOrder } from '../../lib/orderHistory';
+import { estimateFor, localiseEstimate, FALLBACK_ESTIMATES, UAE_CITIES, type DeliveryEstimates } from '../../lib/delivery';
+import { cardOnlyItems, cartDeliveryEstimate, type CategoryRules } from '../../lib/categoryRules';
+import { useLanguage } from '../../context/LanguageContext';
+import { useWholesale } from '../../context/WholesaleContext';
 
 export default function CheckoutPage() {
   const router = useRouter();
   const { cart, clearCart, totals } = useCart();
+  const { t, locale } = useLanguage();
+  const { company: wholesaleCompany } = useWholesale();
+  const isWholesale = Boolean(wholesaleCompany);
   const [formData, setFormData] = useState({ name: '', phone: '', city: 'Dubai', address: '' });
   const [paymentMethod, setPaymentMethod] = useState<'cod' | 'online'>('cod');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [ziinaEnabled, setZiinaEnabled] = useState(true); // Default true, will update on mount
+  const [deliveryEstimates, setDeliveryEstimates] = useState<DeliveryEstimates>(FALLBACK_ESTIMATES);
+  const [categoryRules, setCategoryRules] = useState<CategoryRules>({});
+  // formData.phone holds the 9 local digits only; +971 is added on submit.
+  const [phoneTouched, setPhoneTouched] = useState(false);
+  const [phoneFocused, setPhoneFocused] = useState(false);
+  const phoneCheck = checkUaeMobile(formData.phone);
+
+  // Imported rarities are too valuable to hand to a driver against cash, so one
+  // of them in the cart makes the whole order card-only.
+  const cardOnlyInCart = React.useMemo(
+    () => cardOnlyItems(cart, categoryRules),
+    [cart, categoryRules]
+  );
 
   React.useEffect(() => {
     fetch('/api/checkout-config')
       .then(res => res.json())
       .then(data => {
         setZiinaEnabled(data.ziinaEnabled);
-        if (!data.ziinaEnabled && paymentMethod === 'online') {
-          setPaymentMethod('cod');
+        if (data.deliveryEstimates) setDeliveryEstimates(data.deliveryEstimates);
+        if (data.categoryRules) setCategoryRules(data.categoryRules);
+        // Read through the updater rather than closing over paymentMethod:
+        // the effect runs once on mount, so a captured value would go stale
+        // the moment the shopper picked a different method.
+        if (!data.ziinaEnabled) {
+          setPaymentMethod(prev => (prev === 'online' ? 'cod' : prev));
         }
       })
       .catch(console.error);
   }, []);
 
+  // The rules land after the first paint, so the default 'cod' has to be
+  // corrected once they arrive — and again if the cart changes. Wholesale
+  // orders have no online payment at all, so the rule does not apply to them.
+  React.useEffect(() => {
+    // The card-only rules arrive from the API after first paint, so the default payment method has to be corrected once they land.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (!isWholesale && cardOnlyInCart.length > 0) setPaymentMethod('online');
+  }, [cardOnlyInCart.length, isWholesale]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (cart.length === 0) return setError('Your cart is empty');
     if (!formData.name || !formData.phone || !formData.city || !formData.address) return setError('Please fill all fields');
-    
+
+    if (!phoneCheck.valid) {
+      setPhoneTouched(true);
+      return setError(phoneCheck.message || 'Please enter a valid UAE mobile number.');
+    }
+
+    if (!isWholesale && cardOnlyInCart.length > 0 && paymentMethod !== 'online') {
+      return setError(
+        t('checkout.cardOnlyError', { items: cardOnlyInCart.map((i) => i.name).join(', ') })
+      );
+    }
+
     setError('');
     setLoading(true);
 
@@ -54,6 +92,8 @@ export default function CheckoutPage() {
         // Only ids and quantities matter here — the server prices the order itself.
         body: JSON.stringify({
           ...formData,
+          // Stored and sent to Telegram in full international form.
+          phone: toE164(formData.phone),
           paymentMethod,
           items: cart.map(item => ({ id: item.id, qty: item.qty }))
         })
@@ -62,17 +102,33 @@ export default function CheckoutPage() {
       const data = await res.json();
 
       if (res.ok) {
+        // The receipt is stored on the device rather than fetched back from the
+        // server. /api/orders/[id]/verify is public and order ids are
+        // sequential, so it deliberately returns payment state only — never
+        // what someone bought. This copy also powers the My Orders page.
+        saveOrder({
+          id: data.id,
+          placedAt: new Date().toISOString(),
+          items: cart.map(item => ({ name: item.name, qty: item.qty, price: item.price })),
+          subtotal: totals.subtotal,
+          discount: totals.discount,
+          shipping: totals.shipping,
+          total: totals.finalTotal,
+        });
+
         if (data.redirect_url) {
           window.location.href = data.redirect_url;
         } else {
           clearCart();
-          router.push('/checkout/success');
+          // Without the id the success page had no order number to show at all.
+          router.push(`/checkout/success?order_id=${data.id}`);
         }
       } else {
         setError(data.error || 'Failed to submit order. Try again.');
         setLoading(false);
       }
     } catch (err) {
+      console.error('Checkout submit failed:', err);
       setError('An error occurred. Check connection.');
       setLoading(false);
     }
@@ -137,15 +193,48 @@ export default function CheckoutPage() {
                       </div>
                       <div className="input-group">
                         <label style={{ display: 'block', fontSize: '13px', fontWeight: 800, marginBottom: '8px', color: 'var(--text-secondary)' }}>Phone Number</label>
-                        <input 
-                          type="tel" 
-                          value={formData.phone}
-                          onChange={e => setFormData({...formData, phone: e.target.value})}
-                          style={{ width: '100%', padding: '16px', borderRadius: 'var(--r-md)', border: '2px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)', outline: 'none', fontSize: '15px', transition: 'all 0.2s', fontWeight: 500 }}
-                          placeholder="+971 50 000 0000"
-                          onFocus={(e) => e.target.style.borderColor = 'var(--orange)'}
-                          onBlur={(e) => e.target.style.borderColor = 'var(--border)'}
-                        />
+                        {/* +971 is fixed and lives outside the input, so it can
+                            never be edited away or typed twice. */}
+                        <div style={{
+                          display: 'flex', alignItems: 'stretch', width: '100%',
+                          borderRadius: 'var(--r-md)', overflow: 'hidden',
+                          border: `2px solid ${phoneTouched && phoneCheck.message ? 'var(--danger)' : phoneFocused ? 'var(--orange)' : 'var(--border)'}`,
+                          background: 'var(--bg-input)', transition: 'border-color 0.2s'
+                        }}>
+                          <span style={{
+                            display: 'flex', alignItems: 'center', padding: '16px 12px 16px 16px',
+                            fontSize: '15px', fontWeight: 700, color: 'var(--text-secondary)',
+                            borderRight: '1px solid var(--border)', userSelect: 'none', whiteSpace: 'nowrap'
+                          }}>
+                            🇦🇪 +971
+                          </span>
+                          <input
+                            type="tel"
+                            inputMode="numeric"
+                            autoComplete="tel-national"
+                            aria-label="UAE mobile number without country code"
+                            aria-invalid={phoneTouched && !!phoneCheck.message}
+                            aria-describedby="phone-help"
+                            value={formatUaeLocal(formData.phone)}
+                            onChange={e => setFormData({ ...formData, phone: toLocalDigits(e.target.value) })}
+                            onBlur={() => { setPhoneTouched(true); setPhoneFocused(false); }}
+                            onFocus={() => setPhoneFocused(true)}
+                            style={{ flex: 1, minWidth: 0, padding: '16px 16px 16px 12px', border: 'none', background: 'transparent', color: 'var(--text-primary)', outline: 'none', fontSize: '15px', fontWeight: 500, letterSpacing: '.02em' }}
+                            placeholder="50 123 4567"
+                          />
+                        </div>
+                        <div id="phone-help" style={{ marginTop: '6px', fontSize: '12.5px', fontWeight: 600, minHeight: '18px' }}>
+                          {/* Shown as soon as there is something to correct, so
+                              "1 more digit needed" appears while typing. It only
+                              turns red once they have left the field or hit submit. */}
+                          {phoneCheck.message ? (
+                            <span style={{ color: phoneTouched ? 'var(--danger)' : 'var(--orange)' }}>⚠️ {phoneCheck.message}</span>
+                          ) : phoneCheck.valid ? (
+                            <span style={{ color: 'var(--green-dark)' }}>✅ {toE164(formData.phone)}</span>
+                          ) : (
+                            <span style={{ color: 'var(--text-muted)' }}>9 digits after +971, starting with 5.</span>
+                          )}
+                        </div>
                       </div>
                       <div className="input-group">
                         <label style={{ display: 'block', fontSize: '13px', fontWeight: 800, marginBottom: '8px', color: 'var(--text-secondary)' }}>City (Emirate)</label>
@@ -161,6 +250,31 @@ export default function CheckoutPage() {
                           </select>
                           <svg style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', opacity: 0.5 }} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                         </div>
+                        {/* Answered before they order, not after — this is the
+                            question that otherwise arrives by WhatsApp. */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px', fontSize: '13px', fontWeight: 700, color: 'var(--green-dark)' }}>
+                          <span aria-hidden="true">🚚</span>
+                          <span>
+                            {t('checkout.arrivesIn')}{' '}
+                            <strong style={{ color: 'var(--text-primary)' }}>
+                              {/* Imported stock ships from abroad, so its
+                                  category estimate outranks the emirate one. */}
+                              {localiseEstimate(
+                                cartDeliveryEstimate(
+                                  cart,
+                                  categoryRules,
+                                  estimateFor(formData.city, deliveryEstimates)
+                                ),
+                                locale
+                              )}
+                            </strong>
+                          </span>
+                        </div>
+                        {cardOnlyInCart.length > 0 && (
+                          <div style={{ fontSize: '12.5px', color: 'var(--text-secondary)', marginTop: '4px', fontWeight: 600 }}>
+                            {t('checkout.importedShipping')}
+                          </div>
+                        )}
                       </div>
                       <div className="input-group">
                         <label style={{ display: 'block', fontSize: '13px', fontWeight: 800, marginBottom: '8px', color: 'var(--text-secondary)' }}>Full Address</label>
@@ -186,7 +300,7 @@ export default function CheckoutPage() {
                     </h2>
                     <div style={{ background: 'var(--bg-raised)', padding: '24px', borderRadius: 'var(--r-md)', border: '1px solid var(--border)' }}>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '20px' }}>
-                        {cart.map((item: any) => (
+                        {cart.map((item) => (
                           <div key={item.id} style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
                             <div style={{ width: '56px', height: '56px', borderRadius: 'var(--r-sm)', background: 'var(--bg-main)', display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative', border: '1px solid var(--border)' }}>
                               {item.img && (
@@ -209,7 +323,7 @@ export default function CheckoutPage() {
                               <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{item.catLabel}</span>
                             </div>
                             <div style={{ fontWeight: 800, fontSize: '15px', color: 'var(--price)' }}>
-                              {item.price * item.qty} AED
+                              {formatMoney(item.price * item.qty)} AED
                             </div>
                           </div>
                         ))}
@@ -244,13 +358,43 @@ export default function CheckoutPage() {
 
                   <hr style={{ border: 'none', borderTop: '1px solid var(--border)' }} />
 
-                  {/* Payment Section */}
+                  {/* Payment Section — wholesale orders are invoice-style, so there
+                      is nothing to choose: no online payment, confirmed manually. */}
+                  {isWholesale ? (
+                    <div style={{ background: 'var(--orange-glow)', border: '1.5px solid var(--orange)', borderRadius: 'var(--r-md)', padding: '18px 20px' }}>
+                      <div style={{ fontWeight: 800, fontSize: '15px', color: 'var(--price)', marginBottom: '6px' }}>
+                        🏢 Wholesale Order — {wholesaleCompany?.name}
+                      </div>
+                      <div style={{ fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+                        No payment is taken now. Your order will be under process until we confirm it — we&apos;ll reach out to finalise details.
+                      </div>
+                    </div>
+                  ) : (
                   <div>
                     <h2 style={{ fontSize: '18px', fontWeight: 800, marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                       <span style={{ background: 'var(--orange)', color: '#fff', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', fontSize: '12px' }}>3</span>
                       Payment Method
                     </h2>
+                    {/* Names the exact products responsible, and says how to get
+                        cash on delivery back — otherwise the customer just sees
+                        an option missing with no explanation. */}
+                    {cardOnlyInCart.length > 0 && (
+                      <div style={{ background: 'var(--orange-glow)', border: '1.5px solid var(--orange)', borderRadius: 'var(--r-md)', padding: '16px', marginBottom: '16px' }}>
+                        <div style={{ fontWeight: 800, fontSize: '14px', color: 'var(--price)', marginBottom: '6px' }}>
+                          💳 {t('checkout.cardOnlyTitle')}
+                        </div>
+                        <div style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+                          {t('checkout.cardOnlyBody')}
+                          <ul style={{ margin: '8px 0 0', paddingInlineStart: '20px', color: 'var(--text-primary)', fontWeight: 700 }}>
+                            {cardOnlyInCart.map((item) => <li key={item.id}>{item.name}</li>)}
+                          </ul>
+                          <div style={{ marginTop: '8px' }}>{t('checkout.cardOnlyRemove')}</div>
+                        </div>
+                      </div>
+                    )}
+
                     <div style={{ display: 'flex', gap: '16px', flexDirection: 'column' }}>
+                      {cardOnlyInCart.length === 0 && (
                       <label style={{ display: 'flex', alignItems: 'center', gap: '16px', cursor: 'pointer', background: paymentMethod === 'cod' ? 'var(--bg-main)' : 'var(--bg-input)', padding: '20px', borderRadius: 'var(--r-md)', border: paymentMethod === 'cod' ? '2px solid var(--orange)' : '2px solid var(--border)', transition: 'all 0.2s' }}>
                         <div style={{ width: '22px', height: '22px', borderRadius: '50%', border: paymentMethod === 'cod' ? '6px solid var(--orange)' : '2px solid var(--text-muted)', background: paymentMethod === 'cod' ? '#fff' : 'transparent', transition: 'all 0.2s' }}></div>
                         <input type="radio" name="payment" value="cod" checked={paymentMethod === 'cod'} onChange={() => setPaymentMethod('cod')} style={{ display: 'none' }} />
@@ -259,7 +403,16 @@ export default function CheckoutPage() {
                           <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px', fontWeight: 500 }}>Pay with cash when your order arrives.</div>
                         </div>
                       </label>
-                      
+                      )}
+
+                      {/* Card is off in Settings but this cart cannot use cash —
+                          say so rather than showing no options at all. */}
+                      {cardOnlyInCart.length > 0 && !ziinaEnabled && (
+                        <div style={{ background: 'rgba(255,59,92,.10)', border: '1.5px solid var(--danger)', borderRadius: 'var(--r-md)', padding: '16px', fontSize: '13.5px', color: 'var(--danger)', fontWeight: 700 }}>
+                          {t('checkout.cardUnavailable')}
+                        </div>
+                      )}
+
                       {ziinaEnabled && (
                         <label style={{ display: 'flex', alignItems: 'center', gap: '16px', cursor: 'pointer', background: paymentMethod === 'online' ? 'var(--bg-main)' : 'var(--bg-input)', padding: '20px', borderRadius: 'var(--r-md)', border: paymentMethod === 'online' ? '2px solid var(--orange)' : '2px solid var(--border)', transition: 'all 0.2s' }}>
                           <div style={{ width: '22px', height: '22px', borderRadius: '50%', border: paymentMethod === 'online' ? '6px solid var(--orange)' : '2px solid var(--text-muted)', background: paymentMethod === 'online' ? '#fff' : 'transparent', transition: 'all 0.2s' }}></div>
@@ -272,16 +425,22 @@ export default function CheckoutPage() {
                       )}
                     </div>
                   </div>
-                  
+                  )}
+
                   {/* Submit Button */}
                   <div style={{ marginTop: '10px' }}>
-                    <button 
-                      type="submit" 
-                      disabled={loading}
-                      style={{ 
-                        width: '100%', background: 'var(--orange)', color: '#fff', fontWeight: 900, padding: '20px', 
-                        borderRadius: 'var(--r-md)', fontSize: '18px', display: 'flex', justifyContent: 'center', 
-                        alignItems: 'center', gap: '12px', opacity: loading ? 0.7 : 1, cursor: loading ? 'not-allowed' : 'pointer',
+                    {/* Nothing this cart can be paid with: card is switched off
+                        and cash is not allowed for what is in it. Wholesale
+                        orders are never blocked here — they have no online
+                        payment step to fall back to. */}
+                    {(() => { const blocked = loading || (!isWholesale && cardOnlyInCart.length > 0 && !ziinaEnabled); return (
+                    <button
+                      type="submit"
+                      disabled={blocked}
+                      style={{
+                        width: '100%', background: 'var(--orange)', color: '#fff', fontWeight: 900, padding: '20px',
+                        borderRadius: 'var(--r-md)', fontSize: '18px', display: 'flex', justifyContent: 'center',
+                        alignItems: 'center', gap: '12px', opacity: blocked ? 0.55 : 1, cursor: blocked ? 'not-allowed' : 'pointer',
                         boxShadow: '0 12px 24px rgba(255, 94, 0, 0.25)', transition: 'all 0.3s ease',
                         border: 'none', textTransform: 'uppercase', letterSpacing: '0.02em'
                       }}
@@ -291,12 +450,15 @@ export default function CheckoutPage() {
                           <svg className="spinner" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
                           Processing...
                         </>
+                      ) : isWholesale ? (
+                        <>Place Wholesale Order — {totals.finalTotal.toFixed(2)} AED</>
                       ) : paymentMethod === 'cod' ? (
                         <>Place Order — {totals.finalTotal.toFixed(2)} AED</>
                       ) : (
                         <>Proceed to Pay — {totals.finalTotal.toFixed(2)} AED</>
                       )}
                     </button>
+                    ); })()}
                     <p style={{ textAlign: 'center', fontSize: '13px', color: 'var(--text-secondary)', marginTop: '16px', fontWeight: 500 }}>
                       By placing this order, you agree to our <Link href="/terms" style={{ color: 'var(--orange)', textDecoration: 'underline' }}>Terms of Service</Link> and <Link href="/privacy" style={{ color: 'var(--orange)', textDecoration: 'underline' }}>Privacy Policy</Link>.
                     </p>
